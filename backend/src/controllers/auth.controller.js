@@ -1,6 +1,46 @@
+import User from '../models/User.js'
+
+
 export const signup = async(req, res) => {
     try {
-        const {username, email, password} = req.body
+        const {fullName, email, password} = req.body
+
+        if(!fullName || !email || ! password) {
+            return res.status(400).json({ message: "All fields are required" })
+        }
+
+        if(password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters long" })
+        }
+
+        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ message: "Invalid email format" })
+        }
+
+        const existingUser = await User.findOne({ email})
+        if(existingUser) return res.status(400).json({ message: "Email already in use" })
+
+        const salt = await bcrypt.genSalt(10)   // 10 --> is the lenght of generated hashed password
+        const hashedPw = await bcrypt.hash(password, salt)
+
+        const newUser = await User.create({
+            fullName,
+            email,
+            password: hashedPw
+        })
+
+        if(newUser) {
+            // generateToken(newUser._id, res)
+            await newUser.save()
+            res.status(201).json({
+                _id: newUser._id,
+                fullName: newUser.fullName,
+                email: newUser.email,
+                profilePic: newUser.profilePic
+            })
+        } else {
+            res.status(400).json({ message: "Invalid user data" })
+        }
     } catch (err) {
         console.error("Error during signup:", err)
         res.status(500).json({ message: "Internal server error" })
