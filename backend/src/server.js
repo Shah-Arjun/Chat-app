@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.route.js'
 import messagesRoutes from './routes/messages.route.js' 
 
 const app = express()
+app.use(express.json())   // reqbody will be parsed as JSON
 
 
 app.use('/api/auth', authRoutes)
