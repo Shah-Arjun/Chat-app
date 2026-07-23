@@ -52,6 +52,39 @@ export const signup = async(req, res) => {
 
 
 
+export const login = async(req, res) => {
+    const { email, password } = req.body
+    try {
+        if(!email || !password) {
+            return res.status(400).json({
+                message: "Email and password are required"
+            })
+        }
+        const userExists = await User.findOne({ email })
+        if(!userExists) {
+            return res.status(400).json({
+                message: "Invalid email or password. User not found"
+            })
+        }
+        const isMatch = await bcrypt.compare(password, userExists.password)
+        if(!isMatch) {
+            return res.status(400).json({
+                message: "Invalid email or password"
+            })
+        }
+        generateToken(userExists._id, res)
+        return res.status(200).json({
+            messgae: "Login successful"
+        })
+    } catch (err) {
+        console.log("Login error", err)
+        return res.status(500).json({
+            message: "Internal server error"
+        })
+    }
+}
+
+
 
 export const logout = async(req, res) => {
     try {
