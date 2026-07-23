@@ -1,6 +1,6 @@
 
 
-export const isAuthenticated = (req, res, next) => {
+export const isAuthenticated = async (req, res, next) => {
     try {
         const token = req.cookies.token
         if(!token) {
