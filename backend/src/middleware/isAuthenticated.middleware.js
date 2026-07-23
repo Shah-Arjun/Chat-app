@@ -1,0 +1,34 @@
+
+
+export const isAuthenticated = (req, res, next) => {
+    try {
+        const token = req.cookies.token
+        if(!token) {
+            return res.status(401).json({
+                message: "Not authorized, no token"
+            })
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)  // this action requires cookies-parser middleware to be used in the server.js file
+        if(!decoded) {
+            return res.status(401).json({
+                message: "Not authorized, invalid token"
+            })
+        }
+
+        const user = await User.findById(decoded.userId).select('-password')
+        if(!user){
+            return res.status(401).json({
+                message: "Not authorized, user not found"
+            })
+        }
+
+        req.user = user
+        next()
+    } catch (err) {
+        console.error("Error in isAuthenticated middleware:", err)
+        return res.status(500).json({
+            message: "Internal server error"
+        })
+    }
+}

@@ -1,6 +1,7 @@
 import express from 'express'
 import 'dotenv/config'
 import connectDB from './lib/db.js'
+import cookieParser from 'cookie-parser'
 
 //routes
 import authRoutes from './routes/auth.route.js' 
@@ -8,6 +9,7 @@ import messagesRoutes from './routes/messages.route.js'
 
 const app = express()
 app.use(express.json())   // reqbody will be parsed as JSON
+app.use(cookieParser())   // to parse cookies from the request
 
 
 app.use('/api/auth', authRoutes)
