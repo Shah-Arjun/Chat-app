@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import User from '../models/User.js'
+import User from '../models/user.model.js'
 
 export const isAuthenticated = async (req, res, next) => {
     try {
@@ -16,7 +16,7 @@ export const isAuthenticated = async (req, res, next) => {
                 message: "Not authorized, invalid token"
             })
         }
-        
+
         const user = await User.findById(decoded.id).select('-password')
         if(!user){
             return res.status(401).json({
