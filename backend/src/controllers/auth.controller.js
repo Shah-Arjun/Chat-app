@@ -1,4 +1,5 @@
 import { sendWelcomeEmail } from '../email/emailHandlers.js'
+import { ENV } from '../lib/env.js'
 import { generateToken } from '../lib/utils.js'
 import User from '../models/user.model.js'
 import bcrypt from 'bcryptjs'
@@ -44,7 +45,7 @@ export const signup = async(req, res) => {
             })
 
             try {
-                await sendWelcomeEmail(savedUser.email, savedUser.fullName, process.env.CLIENT_URL)
+                await sendWelcomeEmail(savedUser.email, savedUser.fullName, ENV.CLIENT_URL)
             } catch (error) {
                 console.error("Failed to send welcome email:", error)
             }
@@ -100,7 +101,7 @@ export const logout = async(req, res) => {
     try {
         res.clearCookie('token', {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production'
+            secure: ENV.NODE_ENV === 'production'
         })
         res.status(200).json({ message: "Logged out successfully" })
     } catch (err) {
