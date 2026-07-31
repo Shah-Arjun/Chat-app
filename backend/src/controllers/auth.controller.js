@@ -85,7 +85,10 @@ export const login = async(req, res) => {
         }
         generateToken(userExists._id, res)
         return res.status(200).json({
-            messgae: "Login successful"
+            _id: userExists._id,
+            fullName: userExists.fullName,
+            email: userExists.email,
+            profilePic: userExists.profilePic
         })
     } catch (err) {
         console.log("Login error", err)
@@ -97,12 +100,16 @@ export const login = async(req, res) => {
 
 
 
-export const logout = async(req, res) => {
+export const logout = async(_, res) => {
     try {
-        res.clearCookie('token', {
-            httpOnly: true,
-            secure: ENV.NODE_ENV === 'production'
-        })
+        // res.clearCookie('token', {
+        //     httpOnly: true,
+        //     secure: ENV.NODE_ENV === 'production'
+        // })
+
+        // OR
+
+        res.cookie("token", "", {maxAge: 0})
         res.status(200).json({ message: "Logged out successfully" })
     } catch (err) {
         console.error("Error during logout:", err)
