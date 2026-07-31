@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/user.model.js'
+import { ENV } from '../lib/env.js'
 
 export const isAuthenticated = async (req, res, next) => {
     try {
@@ -10,7 +11,7 @@ export const isAuthenticated = async (req, res, next) => {
             })
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)  // this action requires cookies-parser middleware to be used in the server.js file
+        const decoded = jwt.verify(token, ENV.JWT_SECRET)  // this action requires cookies-parser middleware to be used in the server.js file
         if(!decoded) {
             return res.status(401).json({
                 message: "Not authorized, invalid token"
