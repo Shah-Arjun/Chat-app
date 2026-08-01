@@ -9,7 +9,7 @@ import messagesRoutes from './routes/messages.route.js'
 import { ENV } from './lib/env.js'
 
 const app = express()
-app.use(express.json())   // reqbody will be parsed as JSON
+app.use(express.json())   // reqbody will be parsed as JSON, only 50KB allowed
 app.use(cookieParser())   // to parse cookies from the request
 
 
