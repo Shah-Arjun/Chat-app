@@ -34,3 +34,36 @@ export const getMessagesByUserId = async (req, res) => {
         res.status(500).json({ message: 'Error fetching messages', error });
     }
 }
+
+
+
+
+export const sendMessage = async(req, res) => {
+    try {
+        const { text, image } = req.body
+        const senderId = req.user._id
+        const receiverId = req.params.id
+
+        let imageUrl
+        if(image) {
+            // upload base64 image to cloudinary
+            const uploadResponse = await cloudinary.uploader.upload(image)
+            imageUrl = uploadResponse.secure_url
+        }
+
+        const newMessage = new Message({
+            senderId,
+            receiverId,
+            text,
+            image: imageUrl
+        })
+
+        // TODO: Emit the message to the receiver using socket.io in real-time
+
+        await newMessage.save()
+        res.status(201).json(newMessage)
+    } catch (error) {
+        console.log("Error in sendMessage", error)
+        res.status(500).json({ message: 'Error sending message', error });
+    }
+}

@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllContacts, getMessagesByUserId } from "../controllers/message.controller.js";
+import { getAllContacts, getMessagesByUserId, sendMessage } from "../controllers/message.controller.js";
 import { isAuthenticated } from "../middleware/isAuthenticated.middleware.js";
 const router = express.Router()
 
@@ -7,6 +7,7 @@ const router = express.Router()
 router.get('/contacts', isAuthenticated, getAllContacts)
 // router.get('/chat', getChatPartners)
 router.get('/:id', isAuthenticated, getMessagesByUserId)   // partner's id
-// router.get('/send', sendMessage)
+router.post('/send/:id', isAuthenticated, sendMessage)
+
 
 export default router
