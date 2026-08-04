@@ -67,3 +67,32 @@ export const sendMessage = async(req, res) => {
         res.status(500).json({ message: 'Error sending message', error });
     }
 }
+
+
+
+
+
+export const getChatPartners = async (req, res) => {
+    try {
+        const loggedUserId = req.user.id
+        const messages = await Message.find({
+            $or: [
+                {senderId: loggedUserId},
+                {receiverId: loggedUserId}
+            ]
+        })
+
+        // fetch the id of the chat partners from the messages, and remove duplicates using Set
+        const chatPartnersIds =[...new Set(messages.map((msg) => 
+            msg.senderId.toString() === loggedUserId.toString() ? msg.receiverId.toString() : msg.senderId.toString()
+        ))]
+
+        // fetch the chat partners' details from the User model using the chatPartnersIds
+        const chatPartners = await User.find({_id: { $in: chatPartnersIds }}).select("-password")
+
+        res.status(200).json(chatPartners)
+    } catch (error) {
+        console.log("Error in getChatPartners", error)
+        res.status(500).json({ message: 'Error fetching chat partners', error });
+    }
+}

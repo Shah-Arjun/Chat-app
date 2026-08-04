@@ -5,7 +5,7 @@ import { arcjetPotection } from '../middleware/arcjet.middleware.js'
 
 const router = express.Router()
 
-router.use(arcjetPotection)   // this runs first before the below routes ,   for all auth routes,  below routes executes if next() method is called in arcjet middleware
+// router.use(arcjetPotection)   // this runs first before the below routes ,   for all auth routes,  below routes executes if next() method is called in arcjet middleware
 
 router.post('/signup', signup)
 router.post('/login', login)
