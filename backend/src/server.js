@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser'
 
 //routes
 import authRoutes from './routes/auth.route.js' 
-import messagesRoutes from './routes/messages.route.js' 
+import messagesRoutes from './routes/message.route.js' 
 import { ENV } from './lib/env.js'
 
 const app = express()
