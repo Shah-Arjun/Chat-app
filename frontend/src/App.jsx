@@ -2,8 +2,16 @@ import { Route, Routes } from "react-router";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import ChatPage from "./pages/ChatPage";
+import { useAuthStore } from "./store/useAuthStore";
 
 function App() {
+
+  const { login, authUser, isLoading } = useAuthStore();
+
+  console.log("auth user: ", authUser)
+  console.log("login : ", login())
+  console.log("login : ", isLoading)
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#07111f]">
 
