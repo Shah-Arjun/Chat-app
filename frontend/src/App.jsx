@@ -1,16 +1,19 @@
-import { Route, Routes } from "react-router";
+import { Route, Routes, Navigate } from "react-router";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import ChatPage from "./pages/ChatPage";
 import { useAuthStore } from "./store/useAuthStore";
+import { useEffect } from "react";
+
 
 function App() {
+  const { checkAuth, isCheckingAuth, authUser } = useAuthStore();
 
-  const { login, authUser, isLoading } = useAuthStore();
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
 
-  console.log("auth user: ", authUser)
-  console.log("login : ", login())
-  console.log("login : ", isLoading)
+  console.log("auth user--> ", authUser)
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#07111f]">
@@ -43,9 +46,9 @@ function App() {
       {/* Page */}
       <div className="relative z-10 flex min-h-screen items-center justify-center p-5">
         <Routes>
-          <Route path="/" element={<ChatPage />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={ authUser ? <ChatPage /> : <Navigate to="/login" /> } />
+          <Route path="/login" element={ !authUser ? <Login /> : <Navigate to="/" />} />
+          <Route path="/signup" element={ !authUser ? <SignUp /> : <Navigate to="/" /> } />
         </Routes>
       </div>
     </div>
