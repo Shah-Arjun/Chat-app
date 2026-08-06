@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import 'dotenv/config'
 import connectDB from './lib/db.js'
 import cookieParser from 'cookie-parser'
@@ -10,6 +11,7 @@ import { ENV } from './lib/env.js'
 
 const app = express()
 app.use(express.json())   // reqbody will be parsed as JSON, only 50KB
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true}))
 app.use(cookieParser())   // to parse cookies from the request
 
 
