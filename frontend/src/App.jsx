@@ -4,6 +4,8 @@ import SignUp from "./pages/SignUp";
 import ChatPage from "./pages/ChatPage";
 import { useAuthStore } from "./store/useAuthStore";
 import { useEffect } from "react";
+import PageLoader from "./components/PageLoader";
+import { Toaster } from "react-hot-toast";
 
 
 function App() {
@@ -13,7 +15,7 @@ function App() {
     checkAuth()
   }, [checkAuth])
 
-  console.log("auth user--> ", authUser)
+  if(isCheckingAuth) return <PageLoader />
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#07111f]">
@@ -50,6 +52,8 @@ function App() {
           <Route path="/login" element={ !authUser ? <Login /> : <Navigate to="/" />} />
           <Route path="/signup" element={ !authUser ? <SignUp /> : <Navigate to="/" /> } />
         </Routes>
+
+        <Toaster />
       </div>
     </div>
   );
