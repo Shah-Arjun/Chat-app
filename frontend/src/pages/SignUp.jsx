@@ -80,11 +80,7 @@ function SignUp() {
                         required
                       />
 
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="auth-eye-button"
-                      >
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="auth-eye-button">
                         {showPassword ? (
                           <EyeOff size={20} />
                         ) : (
@@ -94,10 +90,7 @@ function SignUp() {
                     </div>
                   </div>
 
-                  <button
-                    disabled={isSigningUp}
-                    className="auth-btn"
-                  >
+                  <button disabled={isSigningUp} className="auth-btn">
                     {isSigningUp ? (
                       <>
                         <Loader2 className="animate-spin" size={20} />
