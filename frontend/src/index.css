@@ -1,3 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* for boader moving animation */
+@property --border-angle {
+    inherits: false;
+    initial-value: 0deg;
+    syntax: '<angle>';
+}
+
+/* for auth page */
+.auth-label {
+    @apply text-sm text-slate-300
+}
+
+.auth-input {
+    @apply mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-cyan-400
+}
+
+.auth-eye-button {
+    @apply absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white
+}
+
+.auth-btn {
+    @apply w-full rounded-xl bg-cyan-500 py-3 font-semibold text-black transition hover:bg-cyan-400 disabled:opacity-50 flex items-center justify-center gap-2
+}
+
+.auth-link {
+  @apply text-sm text-slate-400 hover:text-cyan-400 transition;
+}
