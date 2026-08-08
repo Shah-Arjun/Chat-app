@@ -10,7 +10,7 @@ import messagesRoutes from './routes/message.route.js'
 import { ENV } from './lib/env.js'
 
 const app = express()
-app.use(express.json())   // reqbody will be parsed as JSON, only 50KB
+app.use(express.json({ limit: "10mb" }))
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true}))
 app.use(cookieParser())   // to parse cookies from the request
 
