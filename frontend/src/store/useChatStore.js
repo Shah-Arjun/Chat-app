@@ -2,7 +2,7 @@ import toast from "react-hot-toast"
 import { create } from "zustand"
 
 // creates a global data store named useChatStore
-export const useChatStore = create((get, set) => ({
+export const useChatStore = create((set, get) => ({
     // state variables
     allContacts: [],   // array to hold all contacts fetched from the backend
     chats: [],         // array to hold all chats partners fetched from the backend
