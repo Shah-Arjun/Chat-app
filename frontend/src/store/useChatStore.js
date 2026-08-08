@@ -11,12 +11,12 @@ export const useChatStore = create((get, set) => ({
     selectedUser: null, // object to hold the selected user for chat
     isUsersLoading: false, 
     isMessagesLoading: false,
-    isSoundEnabled: localStorage.getItem("isSoundEnabled") === true, // boolean to enable or disable sound notifications
+    isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true, // boolean to enable or disable sound notifications
 
 
     // state update functions
     toggleSound: () => {
-        localStorage.setItem("isSoundEnabled", !localStorage.getItem("isSoundEnabled"))  // change the value in localStorage
+        localStorage.setItem("isSoundEnabled", !get().isSoundEnabled)  // change the value in localStorage
         set({ isSoundEnabled: !get().isSoundEnabled })  // update the state variable
     },       
     
