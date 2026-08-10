@@ -1,5 +1,6 @@
 import toast from "react-hot-toast"
 import { create } from "zustand"
+import axiosInstance from "../libs/axios"
 
 // creates a global data store named useChatStore
 export const useChatStore = create((set, get) => ({
@@ -31,7 +32,7 @@ export const useChatStore = create((set, get) => ({
     getAllContacts: async () => {
         try {
             set({ isUsersLoading: true })
-            const res = await fetch("/messages/contacts")
+            const res = await axiosInstance.get("/messages/contacts")
             set({ allContacts: res.data })
         } catch (error) {
             console.log("Error in getAllContacts", error)
@@ -43,7 +44,7 @@ export const useChatStore = create((set, get) => ({
     getMyChatPartners: async () => {
         try {
             set({ isUsersLoading: true })
-            const res = await fetch("/messages/chats")
+            const res = await axiosInstance.get("/messages/chats")
             set({ chats: res.data })
         } catch (error) {
             toast.error(error.response?.data?.message)
