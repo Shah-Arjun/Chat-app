@@ -4,7 +4,7 @@ import { isAuthenticated } from "../middleware/isAuthenticated.middleware.js";
 import { arcjetPotection } from "../middleware/arcjet.middleware.js";
 const router = express.Router()
 
-router.use(arcjetPotection, isAuthenticated)
+router.use( isAuthenticated)
 
 router.get('/contacts', getAllContacts)
 router.get('/chats', getChatPartners)
