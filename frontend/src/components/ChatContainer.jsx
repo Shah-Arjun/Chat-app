@@ -67,13 +67,13 @@ function ChatContainer() {
             <div ref={messageEndRef} />
           </div>
         ) : isMessagesLoading ? (
-          // Loading skeleton
+          <MessagesLoadingSkeleton />
         ) : (
-          // No messages found placeholder
+          <NoChatHistoryPlaceholder name={selectedUser.fullName} />
         )}
       </div>
 
-      // Message input area
+      <MessageInput />
     </>
   );
 }
