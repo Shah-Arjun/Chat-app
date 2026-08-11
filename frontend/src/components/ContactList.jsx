@@ -1,4 +1,3 @@
-
 import { useEffect } from "react"
 import { useChatStore } from "../store/useChatStore"
 import UsersLoadingSkeleton from "./UsersLoadingSkeleton"
@@ -15,9 +14,7 @@ function ContactList() {
   return (
     <>
       {allContacts.length === 0 ? (
-        <div className="py-10 text-center text-slate-400 text-sm">
-          No contacts found
-        </div>
+        <div className="py-10 text-center text-slate-400 text-sm">No contacts found</div>
       ) : (
         allContacts.map((contact) => (
           <div
