@@ -7,28 +7,30 @@ import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
 
 function ChatContainer() {
-  const { selectedUser, getMessagesByUserId, messages, isMessagesLoading, subscribeToMessages, unsubscribeFromMessages } = useChatStore();
+  const { selectedUser, getMessagesByUserId, messages, isMessagesLoading } = useChatStore();
   const { authUser } = useAuthStore();
-  const messageEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   useEffect(() => {
-    getMessagesByUserId(selectedUser._id);
-    subscribeToMessages();
-
-    // clean up
-    return () => unsubscribeFromMessages();
-  }, [selectedUser, getMessagesByUserId, subscribeToMessages, unsubscribeFromMessages]);
+    if(selectedUser?._id) {
+      getMessagesByUserId(selectedUser?._id);
+    }
+  }, [selectedUser, getMessagesByUserId]);
 
   useEffect(() => {
-    if (messageEndRef.current) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    const messagesContainer = messagesContainerRef.current;
+    if (messagesContainer) {
+      messagesContainer.scrollTo({
+        top: messagesContainer.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages]);
 
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col">
       <ChatHeader />
-      <div className="flex-1 px-6 overflow-y-auto py-8">
+      <div ref={messagesContainerRef} className="flex-1 min-h-0 overflow-y-auto px-6 py-8">
         {messages.length > 0 && !isMessagesLoading ? (
           <div className="max-w-3xl mx-auto space-y-6">
             {messages.map((msg) => (
@@ -56,18 +58,18 @@ function ChatContainer() {
                 </div>
               </div>
             ))}
-            {/* scroll target */}
-            <div ref={messageEndRef} />
           </div>
         ) : isMessagesLoading ? (
           <MessagesLoadingSkeleton />
         ) : (
-          <NoChatHistoryPlaceholder name={selectedUser.fullName} />
+          <NoChatHistoryPlaceholder name={selectedUser?.fullName} />
         )}
       </div>
 
-      <MessageInput />
-    </>
+      <div className="shrink-0">
+        <MessageInput />
+      </div>
+    </div>
   );
 }
 
