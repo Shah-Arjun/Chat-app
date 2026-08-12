@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import { ENV } from '../lib/env.js';
 
-export const socketAuthMiddleware = (socket, next) => {
+export const socketAuthMiddleware = async (socket, next) => {
     try {
         // extract token from http-only cookies
         const token = socket.handshake.headers.cookie?.split('; ').find(cookie => cookie.startsWith('token=')).split('=')[1];
