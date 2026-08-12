@@ -1,17 +1,21 @@
 import {create} from "zustand"
 import axiosInstance from "../libs/axios"
 import toast from "react-hot-toast"
+import { io } from "socket.io-client"
 
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:4000" : "https://.................com"
 
 // creates a global data store named useAuthStore
 // create function returns a hook that can be used to access the store
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
     // state variables
     authUser: null,
     isCheckingAuth: true,     // check auth status on app load
     isSigningUp: false,
     isLoggingIn: false,
     isUpdatingProfile: false,
+    socket: null,            // stores socket instance/connection
+    onlineUsers: [],         // stoes online users ids received from server
 
     // state update functions
     checkAuth: async () => {
@@ -78,5 +82,29 @@ export const useAuthStore = create((set) => ({
         } finally {
             set({ isUpdatingProfile: false })
         }
-    }
+    },
+
+
+    // this function connects the authenticated frontend user to the socket.io server
+    connectSocket: () => {
+        const {authUser} = get()                             // get the current authenticated user from the store (from authUser state variable)
+        if(!authUser || get().socket?.connected) return     // if not authenticated user or socket is already connected, do nothing (dont connect socket again)
+
+        const socket = io(BASE_URL, {       // creates socket connection,  connect to the server using socket.io
+            withCredentials: true,
+        })
+
+        socket.connect()                // starts socket connection
+
+        set({ socket: socket })         // update the socket state variable in the store with the connected socket instance
+
+        // listen to online users event from server
+        socket.on("getOnlineUsers", (userIds) => {
+            set({onlineUsers: userIds })
+        })
+    },
+
+    disconnectSocket: () => {
+        if(get().socket?.connected) get().socket.disconnect()
+    },
 }))
