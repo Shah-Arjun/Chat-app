@@ -3,7 +3,7 @@ import axiosInstance from "../libs/axios"
 import toast from "react-hot-toast"
 import { io } from "socket.io-client"
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:4000" : "https://.................com"
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:3000" : "https://.................com"
 
 // creates a global data store named useAuthStore
 // create function returns a hook that can be used to access the store
@@ -22,6 +22,7 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await axiosInstance.get("/auth/check")
             set({ authUser: res.data })
+            get().connectSocket()  // connect socket after successful auth check
         } catch (error) {
             console.log("Error in checkAuth", error)
             set({ authUser: null, isCheckingAuth: false})
@@ -36,6 +37,7 @@ export const useAuthStore = create((set, get) => ({
             const res = await axiosInstance.post("/auth/signup", data)
             set({ authUser: res.data, isSigningUp: false })
             toast.success("Account created successfully!")
+            get().connectSocket()  // connect socket after successful signup
         } catch (error) {
             set({ isSigningUp: false })
             toast.error(error.response?.data?.message || "Error in signup")
@@ -50,6 +52,7 @@ export const useAuthStore = create((set, get) => ({
             const res = await axiosInstance.post("/auth/login", data)
             set({ authUser: res.data, isLoggingIn: false })
             toast.success("Login successful!")
+            get().connectSocket()  // connect socket after successful login
         } catch (error) {
             set({ isLoggingIn: false })
             toast.error(error.response?.data?.message || "Error in login")
@@ -63,6 +66,7 @@ export const useAuthStore = create((set, get) => ({
             const res = await axiosInstance.post("/auth/logout")
             set({ authUser: null })
             toast.success(res.data.message || "Logout successful!")
+            get().disconnectSocket()  // disconnect socket after logout
         } catch (error) {
             toast.error("Error in logout")
             console.log("Error in logout", error)
