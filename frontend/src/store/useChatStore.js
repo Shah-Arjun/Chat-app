@@ -1,6 +1,7 @@
 import toast from "react-hot-toast"
 import { create } from "zustand"
 import axiosInstance from "../libs/axios"
+import { useAuthStore } from "./useAuthStore"
 
 // creates a global data store named useChatStore
 export const useChatStore = create((set, get) => ({
@@ -73,5 +74,34 @@ export const useChatStore = create((set, get) => ({
         } catch (error) {
             toast.error(error.response?.data?.message || "Something went wrong")
         }
+    },
+
+    // listen to new incoming messages in real-time
+    subscribeToMessages: () => {
+        const { selectedUser, isSoundEnabled } = get()
+        if(!selectedUser) return
+
+        const socket = useAuthStore.getState().socket
+
+        socket.on("newMessage", (newMessage) => {
+            const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id
+            if(!isMessageSentFromSelectedUser) return 
+
+            const currentMessages = get().messages
+            set({ messages: [...currentMessages, newMessage] })
+            
+            if(isSoundEnabled) {
+                const notificationSound = new Audio("/sounds/notification.mp3")
+                notificationSound.currentTime = 0
+                notificationSound.play().catch((e) => console.log("Sound play failed.", e))
+            }
+        })
+    },
+
+    // unsubscribe from new incoming messages when the component unmounts or selectedUser changes
+    unsubscribeFromMessages: () => {
+        const socket = useAuthStore.getState().socket
+        socket.off("newMessage", )
     }
+
 }))

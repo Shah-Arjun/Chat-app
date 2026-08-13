@@ -22,6 +22,10 @@ const io = new Server(server, {
 io.use(socketAuthMiddleware)         // runs before the connection event, checks if the user is authenticated or not, if not authenticated, disconnects the socket connection
 
 
+export function getReceiverSocketId(receiverId) {
+    return socketUserMap[receiverId]
+}
+
 // this is for storing online user
 const socketUserMap = {}          // key:value pair {userId: socketId} to keep track of online users, tells which user is connected to which socket
 
