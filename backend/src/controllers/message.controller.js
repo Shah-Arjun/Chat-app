@@ -1,3 +1,4 @@
+import { getReceiverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
 
@@ -51,17 +52,21 @@ export const sendMessage = async(req, res) => {
             imageUrl = uploadResponse.secure_url
         }
 
-        const newMessage = new Message({
+        // create  and save the message in the database
+        const newMessage = await Message.create({
             senderId,
             receiverId,
             text,
             image: imageUrl
         })
 
-        // TODO: Emit the message to the receiver using socket.io in real-time
+        // send the message to the receiver if they are online
+        const receiverSocketId = getReceiverSocketId(receiverId)
+        if(receiverSocketId) {     // this checks if the user is online or not,  send the message to that receiver if online
+            io.to(receiverSocketId).emit("newMessage", newMessage)
+        }
 
-        await newMessage.save()
-        res.status(201).json(newMessage)
+        res.status(201).json(newMessage)   // send saved messages back to receiver, so that it can be displayed in the chat window
     } catch (error) {
         console.log("Error in sendMessage", error)
         res.status(500).json({ message: 'Error sending message', error });
