@@ -3,9 +3,9 @@
 <br>
 
 <p align="center">
-  <img src="./screenshots/chat.png" width="90%" alt="Full-Stack Real-Time Chat App Preview" />
+  <img src="./banner2.png" width="90%" alt="Full-Stack Real-Time Chat App Preview" />
 </p>
-This is a **full-stack real-time messaging application** designed to provide a smooth and modern chatting experience.
+This is a full-stack real-time messaging application designed to provide a smooth and modern chatting experience.
 
 ---
 
@@ -91,6 +91,3 @@ Postman
               │
               ▼
        Real-Time Messages
-```
-
----
