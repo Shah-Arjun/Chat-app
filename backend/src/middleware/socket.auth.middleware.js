@@ -15,13 +15,13 @@ export const socketAuthMiddleware = async (socket, next) => {
         // verify token
         const decoded = jwt.verify(token, ENV.JWT_SECRET);
         if(!decoded) {
-            // console.log("Socket connection rejected. Invalid token.")   //debug
+            // console.log("Socket connection rejected. Invalid token.")    // debug
             return next(new Error('Unauthorized - Invalid token'))
         }
         
         const user = await User.findById(decoded.id).select('-password');
         if (!user) {
-            // console.log("Socket connection rejected. User not found.")   //debug
+            // console.log("Socket connection rejected. User not found.")     //debug
             return next(new Error('Unauthorized - User not found'));
         }
 
@@ -29,7 +29,7 @@ export const socketAuthMiddleware = async (socket, next) => {
         socket.user = user;
         socket.userId = user._id.toString()
 
-        // console.log(`Socket authentication for user: ${user.fullName} ${user._id}`)   //debug
+        // console.log(`Socket authentication for user: ${user.fullName} ${user._id}`)  // debug
 
         next();
     } catch (error) {
