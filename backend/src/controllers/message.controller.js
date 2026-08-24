@@ -102,3 +102,35 @@ export const getChatPartners = async (req, res) => {
         res.status(500).json({ message: 'Error fetching chat partners', error });
     }
 }
+
+
+export const deleteMyMessage =async(req, res) => {
+    try {
+        const msgIds = req.body.messageIds
+        const userId = req.user.id
+
+        // delete the messages from the database where the user is either the sender or receiver
+        if (!Array.isArray(msgIds) || msgIds.length === 0) {
+            return res.status(400).json({
+                message: "Message IDs are required",
+            });
+        }
+
+        const result = await Message.deleteMany({
+            _id: { $in: msgIds },
+            $or: [
+                { senderId: userId },
+                { receiverId: userId },
+            ],
+        });
+
+        res.status(200).json({
+            message: "Messages deleted successfully",
+            deletedCount: result.deletedCount,
+            msgIds: msgIds,
+    });
+    } catch (error) {
+        console.log("Error deleting message", error)
+        res.status(500).json({ message: 'Error deleting message', error });
+    }
+}
