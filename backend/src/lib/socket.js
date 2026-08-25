@@ -43,7 +43,70 @@ io.on("connection", (socket) => {
         console.log(`User disconnected: ${socket.user.fullName}`)
         delete socketUserMap[userId];
         io.emit("getOnlineUsers", Object.keys(socketUserMap))  // emit updated online users to all connected clients
-    })
+    });
+
+
+    // start a call (call user)
+    socket.on("call-user", ({to, offer}) => {
+        const targetSocketId = socketUserMap.get(to)   // get the socketId of the user to whom we want to call
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("incoming-call", {
+                offer,
+                socket: socket.id,
+            })
+        }
+    });
+
+
+    // accept a call
+    socket.on("call-accepted", ({ to, answer }) => {
+        const targetSocketId = socketUserMap.get(to);
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("call-accepted", {
+                from: socket.userId,
+                answer,
+            });
+        }
+    });
+
+
+    // Reject a call
+    socket.on("call-rejected", ({ to }) => {
+        const targetSocketId = socketUserMap.get(to);
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("call-rejected", {
+                from: socket.userId,
+            });
+        }
+    });
+
+
+    // ICE candidate -- Help WebRTC to establish a peer-to-peer connection, browser generates ice-candidate and server sends it to the other user, other user adds it to their peer connection
+    socket.on("ice-candidate", ({ to, candidate }) => {
+        const targetSocketId = socketUserMap.get(to);
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("ice-candidate", {
+                from: socket.userId,
+                candidate,
+            });
+        }
+    });
+
+
+    //  End call
+    socket.on("call-ended", ({ to }) => {
+        const targetSocketId = socketUserMap.get(to);
+
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("call-ended", {
+                from: socket.userId,
+            });
+        }
+    });
 })
 
 
