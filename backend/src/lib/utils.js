@@ -12,7 +12,7 @@ export const generateToken = (userId, res) => {
     res.cookie("token", token, {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
         httpOnly: true,                                //prevent XSS attacks
-        sameSite: "strict",                            //prevent CSRF attacks
+        sameSite: ENV.NODE_ENV === "production" ? "none" : "lax",     //prevent CSRF attacks
         secure: ENV.NODE_ENV === "production" ? true : false        // https only in production
     })
 
