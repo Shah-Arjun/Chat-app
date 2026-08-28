@@ -17,6 +17,7 @@ export const useChatStore = create((set, get) => ({
     isDeletingSelectedMessages: false,
     isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true, // boolean to enable or disable sound notifications
     selectedMessages: [], // array to hold the ids of selected messages for deletion
+    typingUsers: {}, // { [userId]: boolean } - tracks users currently typing to me
 
 
     // state update functions
@@ -30,7 +31,7 @@ export const useChatStore = create((set, get) => ({
     },
 
     setSelectedUser: (selectedUser) => {
-        set({ selectedUser: selectedUser, selectedMessages: [] })
+        set({ selectedUser: selectedUser, selectedMessages: [], typingUsers: {} })
     },
 
     getAllContacts: async () => {
@@ -102,6 +103,26 @@ export const useChatStore = create((set, get) => ({
         })
 
 
+        // listen to typing indicators in real-time
+        socket.on("typing:start", ({ from }) => {
+            if (!from) return;
+            const currentSelected = get().selectedUser;
+            if (currentSelected && from.toString() === currentSelected._id.toString()) {
+                set((state) => ({
+                    typingUsers: { ...state.typingUsers, [from]: true },
+                }));
+            }
+        });
+
+        socket.on("typing:stop", ({ from }) => {
+            if (!from) return;
+            set((state) => {
+                const updated = { ...state.typingUsers };
+                delete updated[from];
+                return { typingUsers: updated };
+            });
+        });
+
         // listen to message deletion events in real-time
         socket.on("messagesDeleted", ({ messageIds }) => {
             set((state) => ({
@@ -111,16 +132,42 @@ export const useChatStore = create((set, get) => ({
                 selectedMessages: state.selectedMessages.filter((id) => !messageIds.includes(id)),
             }));
         });
+
+        socket.on("call-history-updated", (call) => {
+            const partnerId = selectedUser._id.toString();
+            // Check against both original and normalized field names
+            const ids = [call.callerId, call.receiverId, call.senderId].map((id) => id?.toString());
+            const isParticipant = ids.includes(partnerId);
+            if (!isParticipant) return;
+
+            set((state) => {
+                const exists = state.messages.some((msg) => msg._id === call._id);
+                const updated = exists
+                    ? state.messages.map((msg) => msg._id === call._id ? call : msg)
+                    : [...state.messages, call];
+                // Keep messages sorted by their effective timestamp
+                return {
+                    messages: updated.sort((a, b) =>
+                        new Date(a.createdAt || a.startedAt).getTime() -
+                        new Date(b.createdAt || b.startedAt).getTime()
+                    ),
+                };
+            });
+        });
+
     },
 
 
     // unsubscribe from new incoming messages when the component unmounts or selectedUser changes
     unsubscribeFromMessages: () => {
         const socket = useAuthStore.getState().socket
-        socket.off("newMessage", )
-
+        if (!socket) return;
+        socket.off("newMessage");
+        socket.off("typing:start");
+        socket.off("typing:stop");
         socket.off("messagesDeleted");
-
+        socket.off("call-history-updated");
+        set({ typingUsers: {} });
     },
 
 
