@@ -2,6 +2,7 @@ import cloudinary from "../lib/cloudinary.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
+import Call from "../models/call.model.js";
 
 
 export const getAllContacts = async (req, res) => {
@@ -23,14 +24,29 @@ export const getMessagesByUserId = async (req, res) => {
         const myId = req.user.id
         const partnerId = req.params.id
 
-        const messages = await Message.find({
+        const [messages, calls] = await Promise.all([Message.find({
             $or: [
                 {senderId: myId, receiverId: partnerId},
                 {senderId: partnerId, receiverId: myId}
             ]
-        })
+        }), Call.find({
+            $or: [
+                { callerId: myId, receiverId: partnerId },
+                { callerId: partnerId, receiverId: myId },
+            ],
+        })])
 
-        return res.status(200).json(messages)
+        const history = [
+            ...messages.map((message) => message.toObject()),
+            ...calls.map((call) => ({
+                ...call.toObject(),
+                type: "call",
+                senderId: call.callerId,
+                receiverId: call.receiverId,
+            })),
+        ].sort((first, second) => new Date(first.createdAt || first.startedAt) - new Date(second.createdAt || second.startedAt));
+
+        return res.status(200).json(history)
     } catch (error) {
         console.log("Error in getMessagesByUserId", error)
         res.status(500).json({ message: 'Error fetching messages', error });

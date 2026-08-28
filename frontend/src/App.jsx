@@ -6,14 +6,22 @@ import { useAuthStore } from "./store/useAuthStore";
 import { useEffect } from "react";
 import PageLoader from "./components/PageLoader";
 import { Toaster } from "react-hot-toast";
+import IncomingCall from "./components/IncomingCall";
+import VideoCall from "./components/VideoCall";
+import { useCallStore } from "./store/useCallStore";
 
 
 function App() {
-  const { checkAuth, isCheckingAuth, authUser } = useAuthStore();
+  const { checkAuth, isCheckingAuth, authUser, socket } = useAuthStore();
+  const initializeCallSocket = useCallStore((state) => state.initializeSocket);
 
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
+
+  useEffect(() => {
+    initializeCallSocket(socket);
+  }, [socket, initializeCallSocket])
 
   if(isCheckingAuth) return <PageLoader />
 
@@ -46,15 +54,18 @@ function App() {
       <div className="absolute inset-0 bg-black/20" />
 
       {/* Page */}
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-5">
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-2 sm:p-5">
         <Routes>
           <Route path="/" element={ authUser ? <ChatPage /> : <Navigate to="/login" /> } />
           <Route path="/login" element={ !authUser ? <Login /> : <Navigate to="/" />} />
           <Route path="/signup" element={ !authUser ? <SignUp /> : <Navigate to="/" /> } />
         </Routes>
-
-        <Toaster />
       </div>
+
+      {/* Global overlays – rendered outside the page wrapper so they appear above everything */}
+      <Toaster position="top-right" toastOptions={{ style: { background: '#1e293b', color: '#e2e8f0', border: '1px solid #334155' } }} />
+      <IncomingCall />
+      <VideoCall />
     </div>
   );
 }
