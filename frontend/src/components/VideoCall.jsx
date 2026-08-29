@@ -10,13 +10,20 @@ function AudioCallView({ user, statusText, isConnected, isMuted, remoteStream })
   const remoteAudioRef = useRef(null);
 
   useEffect(() => {
-    if (remoteAudioRef.current && remoteStream) {
-      remoteAudioRef.current.srcObject = remoteStream;
-      const playPromise = remoteAudioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => console.warn("Audio play error:", err));
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = remoteStream || null;
+      if (remoteStream) {
+        const playPromise = remoteAudioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => console.warn("Audio play error:", err));
+        }
       }
     }
+    return () => {
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = null;
+      }
+    };
   }, [remoteStream]);
 
   return (
@@ -139,23 +146,37 @@ function VideoCall() {
 
   // Wire streams to video elements
   useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream;
-      const playPromise = localVideoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((e) => console.warn("Local video play error:", e));
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = localStream || null;
+      if (localStream) {
+        const playPromise = localVideoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((e) => console.warn("Local video play error:", e));
+        }
       }
     }
+    return () => {
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = null;
+      }
+    };
   }, [localStream]);
 
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream;
-      const playPromise = remoteVideoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((e) => console.warn("Remote video play error:", e));
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = remoteStream || null;
+      if (remoteStream) {
+        const playPromise = remoteVideoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((e) => console.warn("Remote video play error:", e));
+        }
       }
     }
+    return () => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+      }
+    };
   }, [remoteStream]);
 
   // Keyboard shortcuts: Space = mute, C = camera, Escape = end
