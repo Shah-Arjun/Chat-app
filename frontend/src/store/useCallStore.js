@@ -158,17 +158,17 @@ export const useCallStore = create((set, get) => ({
     };
 
     const handleCandidate = async ({ candidate }) => {
+      if (!candidate) return;
       const { peerConnection } = get();
-      if (!peerConnection) return;
-      if (!peerConnection.remoteDescription) {
-        // Buffer until remote description is set
+      if (!peerConnection || !peerConnection.remoteDescription || !peerConnection.remoteDescription.type) {
+        // Buffer candidate until remote description is set
         set((state) => ({ pendingCandidates: [...state.pendingCandidates, candidate] }));
         return;
       }
       try {
         await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
       } catch (err) {
-        if (candidate !== null) console.warn("addIceCandidate error:", err);
+        console.warn("addIceCandidate error:", err);
       }
     };
 
@@ -201,19 +201,23 @@ export const useCallStore = create((set, get) => ({
     const peerConnection = new RTCPeerConnection(rtcConfig);
     const remoteStream = new MediaStream();
 
-    peerConnection.ontrack = ({ track, streams }) => {
-      if (!remoteStream.getTracks().some((t) => t.id === track.id)) {
-        remoteStream.addTrack(track);
-      }
-      if (streams?.[0]) {
-        streams[0].getTracks().forEach((t) => {
-          if (!remoteStream.getTracks().some((existing) => existing.id === t.id)) {
-            remoteStream.addTrack(t);
+    peerConnection.ontrack = (event) => {
+      const { remoteStream: currentRemote } = get();
+      const stream = currentRemote || remoteStream;
+
+      if (event.streams && event.streams[0]) {
+        event.streams[0].getTracks().forEach((track) => {
+          if (!stream.getTracks().some((t) => t.id === track.id)) {
+            stream.addTrack(track);
           }
         });
+      } else if (event.track) {
+        if (!stream.getTracks().some((t) => t.id === event.track.id)) {
+          stream.addTrack(event.track);
+        }
       }
-      // Trigger reactive re-renders
-      set({ remoteStream: new MediaStream(remoteStream.getTracks()) });
+
+      set({ remoteStream: new MediaStream(stream.getTracks()) });
     };
 
     peerConnection.onicecandidate = ({ candidate }) => {
@@ -226,9 +230,9 @@ export const useCallStore = create((set, get) => ({
     peerConnection.onconnectionstatechange = () => {
       const state = peerConnection.connectionState;
       console.log("PeerConnection state:", state);
-      if (["failed", "disconnected", "closed"].includes(state) && !cleanupScheduled) {
+      if (state === "failed" && !cleanupScheduled) {
         cleanupScheduled = true;
-        setTimeout(() => get().cleanupCall(true), 500);
+        setTimeout(() => get().cleanupCall(true), 1500);
       }
     };
 
@@ -397,15 +401,16 @@ export const useCallStore = create((set, get) => ({
 
   flushCandidates: async () => {
     const { peerConnection, pendingCandidates } = get();
-    if (!peerConnection?.remoteDescription || !pendingCandidates.length) return;
-    for (const candidate of pendingCandidates) {
+    if (!peerConnection?.remoteDescription?.type || !pendingCandidates.length) return;
+    const candidates = [...pendingCandidates];
+    set({ pendingCandidates: [] });
+    for (const candidate of candidates) {
       try {
         await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
       } catch (err) {
-        if (candidate !== null) console.warn("flushCandidates error:", err);
+        console.warn("flushCandidates error:", err);
       }
     }
-    set({ pendingCandidates: [] });
   },
 
   toggleMute: () => {

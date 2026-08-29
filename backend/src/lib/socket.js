@@ -23,12 +23,15 @@ const io = new Server(server, {
 io.use(socketAuthMiddleware)         // runs before the connection event, checks if the user is authenticated or not, if not authenticated, disconnects the socket connection
 
 
-export function getReceiverSocketId(receiverId) {
-    return socketUserMap[receiverId.toString()]
-}
+// {userId: Set<socketId>} – tracks online users
+const userSocketsMap = {}
 
-// {userId: socketId} – tracks online users
-const socketUserMap = {}
+export function getReceiverSocketId(receiverId) {
+    if (!receiverId) return null;
+    const socketSet = userSocketsMap[receiverId.toString()];
+    if (!socketSet || socketSet.size === 0) return null;
+    return Array.from(socketSet)[0];
+}
 
 // {socketId: { callId, otherUserId }} – tracks active calls per socket so we can auto-end on disconnect
 const activeCallMap = {}
@@ -48,53 +51,53 @@ function normalizeCall(call) {
 function emitCallHistory(call, socket, io) {
     if (!call) return;
     const item = normalizeCall(call);
-    const callerId = call.callerId.toString();
-    const receiverId = call.receiverId.toString();
+    const callerId = call.callerId?.toString();
+    const receiverId = call.receiverId?.toString();
 
-    const callerSocketId = socketUserMap[callerId];
-    const receiverSocketId = socketUserMap[receiverId];
-
-    if (callerSocketId) io.to(callerSocketId).emit("call-history-updated", item);
-    if (receiverSocketId) io.to(receiverSocketId).emit("call-history-updated", item);
+    if (callerId) io.to(callerId).emit("call-history-updated", item);
+    if (receiverId) io.to(receiverId).emit("call-history-updated", item);
 }
 
 
 io.on("connection", (socket) => {
     console.log(`User connected: ${socket.user.fullName}`)
     const userId = socket.userId;
-    socketUserMap[userId] = socket.id;         // store the socketId for the connected user
+    if (!userSocketsMap[userId]) {
+        userSocketsMap[userId] = new Set();
+    }
+    userSocketsMap[userId].add(socket.id);
+    socket.join(userId);
     
     // emit online users to all connected clients 
-    io.emit("getOnlineUsers", Object.keys(socketUserMap))  
+    io.emit("getOnlineUsers", Object.keys(userSocketsMap))  
 
 
     // ─── TYPING INDICATORS ──────────────────────────────────────────────────
     socket.on("typing:start", ({ to }) => {
         if (!to || to.toString() === userId) return;
-        const targetSocketId = getReceiverSocketId(to);
-        if (targetSocketId) {
-            io.to(targetSocketId).emit("typing:start", {
-                from: userId,
-            });
-        }
+        io.to(to.toString()).emit("typing:start", {
+            from: userId,
+        });
     });
 
     socket.on("typing:stop", ({ to }) => {
         if (!to || to.toString() === userId) return;
-        const targetSocketId = getReceiverSocketId(to);
-        if (targetSocketId) {
-            io.to(targetSocketId).emit("typing:stop", {
-                from: userId,
-            });
-        }
+        io.to(to.toString()).emit("typing:stop", {
+            from: userId,
+        });
     });
 
 
     // ─── DISCONNECT ─────────────────────────────────────────────────────────────
     socket.on("disconnect", async () => {
-        console.log(`User disconnected: ${socket.user.fullName}`)
-        delete socketUserMap[userId];
-        io.emit("getOnlineUsers", Object.keys(socketUserMap))
+        console.log(`User disconnected: ${socket.user?.fullName || userId}`)
+        if (userSocketsMap[userId]) {
+            userSocketsMap[userId].delete(socket.id);
+            if (userSocketsMap[userId].size === 0) {
+                delete userSocketsMap[userId];
+            }
+        }
+        io.emit("getOnlineUsers", Object.keys(userSocketsMap))
 
         // If this socket was in an active call, notify the peer and end the call
         const activeCall = activeCallMap[socket.id];
@@ -123,10 +126,7 @@ io.on("connection", (socket) => {
             }
 
             // Notify the other peer
-            const otherSocketId = socketUserMap[otherUserId];
-            if (otherSocketId) {
-                io.to(otherSocketId).emit("call-ended", { from: userId, callId });
-            }
+            io.to(otherUserId.toString()).emit("call-ended", { from: userId, callId });
         }
     });
 
@@ -134,11 +134,11 @@ io.on("connection", (socket) => {
     // ─── START A CALL ────────────────────────────────────────────────────────────
     socket.on("call-user", async ({ to, offer, callType = "video" }) => {
         if (!to || to.toString() === userId) return;
-        const targetSocketId = getReceiverSocketId(to);
+        const targetOnline = userSocketsMap[to.toString()] && userSocketsMap[to.toString()].size > 0;
         const validCallType = callType === "audio" ? "audio" : "video";
 
         try {
-            if (!targetSocketId) {
+            if (!targetOnline) {
                 // Target is offline – create as missed immediately
                 const call = await Call.create({
                     callerId: userId,
@@ -148,20 +148,6 @@ io.on("connection", (socket) => {
                 });
                 emitCallHistory(call, socket, io);
                 socket.emit("call-rejected", { from: to, reason: "offline", callId: call._id });
-                return;
-            }
-
-            // Check if receiver is already in an active call
-            const receiverActiveCall = activeCallMap[targetSocketId];
-            if (receiverActiveCall) {
-                const call = await Call.create({
-                    callerId: userId,
-                    receiverId: to,
-                    callType: validCallType,
-                    status: "missed",
-                });
-                emitCallHistory(call, socket, io);
-                socket.emit("call-rejected", { from: to, reason: "busy", callId: call._id });
                 return;
             }
 
@@ -175,9 +161,9 @@ io.on("connection", (socket) => {
             emitCallHistory(call, socket, io);
 
             // Track this call on the caller's socket
-            activeCallMap[socket.id] = { callId: call._id.toString(), otherUserId: to, callType: validCallType };
+            activeCallMap[socket.id] = { callId: call._id.toString(), otherUserId: to.toString(), callType: validCallType };
 
-            io.to(targetSocketId).emit("incoming-call", {
+            io.to(to.toString()).emit("incoming-call", {
                 offer,
                 callId: call._id,
                 callType: validCallType,
@@ -192,7 +178,6 @@ io.on("connection", (socket) => {
     // ─── ACCEPT A CALL ───────────────────────────────────────────────────────────
     socket.on("call-accepted", async ({ to, answer, callId }) => {
         if (!to || !callId) return;
-        const targetSocketId = getReceiverSocketId(to);
 
         try {
             const connectedAt = new Date();
@@ -205,20 +190,14 @@ io.on("connection", (socket) => {
             emitCallHistory(call, socket, io);
 
             // Track this call on the receiver's socket too
-            activeCallMap[socket.id] = { callId: callId.toString(), otherUserId: to, callType: call?.callType || "video" };
-            // Update caller's active call entry as well
-            if (targetSocketId) {
-                activeCallMap[targetSocketId] = { callId: callId.toString(), otherUserId: userId, callType: call?.callType || "video" };
-            }
+            activeCallMap[socket.id] = { callId: callId.toString(), otherUserId: to.toString(), callType: call?.callType || "video" };
 
-            if (targetSocketId) {
-                io.to(targetSocketId).emit("call-accepted", {
-                    from: socket.userId,
-                    answer,
-                    callId: call?._id,
-                    callType: call?.callType || "video",
-                });
-            }
+            io.to(to.toString()).emit("call-accepted", {
+                from: socket.userId,
+                answer,
+                callId: call?._id,
+                callType: call?.callType || "video",
+            });
         } catch (err) {
             console.error("Error in call-accepted:", err);
         }
@@ -228,12 +207,7 @@ io.on("connection", (socket) => {
     // ─── REJECT A CALL ───────────────────────────────────────────────────────────
     socket.on("call-rejected", async ({ to, callId, status }) => {
         if (!to) return;
-        const targetSocketId = getReceiverSocketId(to);
 
-        // Clean up active call tracking for caller
-        if (targetSocketId) {
-            delete activeCallMap[targetSocketId];
-        }
         delete activeCallMap[socket.id];
 
         try {
@@ -245,13 +219,11 @@ io.on("connection", (socket) => {
             );
             emitCallHistory(call, socket, io);
 
-            if (targetSocketId) {
-                io.to(targetSocketId).emit("call-rejected", {
-                    from: socket.userId,
-                    callId: call?._id,
-                    reason: finalStatus,
-                });
-            }
+            io.to(to.toString()).emit("call-rejected", {
+                from: socket.userId,
+                callId: call?._id,
+                reason: finalStatus,
+            });
         } catch (err) {
             console.error("Error in call-rejected:", err);
         }
@@ -259,28 +231,21 @@ io.on("connection", (socket) => {
 
 
     // ─── ICE CANDIDATE ───────────────────────────────────────────────────────────
-    // Help WebRTC establish a peer-to-peer connection. Browser generates ice-candidates
-    // and the server relays them to the other peer.
     socket.on("ice-candidate", ({ to, candidate }) => {
         if (!to || !candidate) return;
-        const targetSocketId = getReceiverSocketId(to);
-        if (targetSocketId) {
-            io.to(targetSocketId).emit("ice-candidate", {
-                from: socket.userId,
-                candidate,
-            });
-        }
+        io.to(to.toString()).emit("ice-candidate", {
+            from: socket.userId,
+            candidate,
+        });
     });
 
 
     // ─── END CALL ────────────────────────────────────────────────────────────────
     socket.on("call-ended", async ({ to, callId, accepted }) => {
         if (!to) return;
-        const targetSocketId = getReceiverSocketId(to);
 
         // Clean up active call tracking
         delete activeCallMap[socket.id];
-        if (targetSocketId) delete activeCallMap[targetSocketId];
 
         try {
             const call = await Call.findOne({
@@ -313,12 +278,10 @@ io.on("connection", (socket) => {
             console.error("Error in call-ended:", err);
         }
 
-        if (targetSocketId) {
-            io.to(targetSocketId).emit("call-ended", {
-                from: socket.userId,
-                callId,
-            });
-        }
+        io.to(to.toString()).emit("call-ended", {
+            from: socket.userId,
+            callId,
+        });
     });
 })
 

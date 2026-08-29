@@ -16,7 +16,7 @@ function ChatHeader() {
   } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const { callStatus, startCall } = useCallStore();
-  const isUserOnline = onlineUsers.includes(selectedUser._id);
+  const isUserOnline = selectedUser?._id ? onlineUsers.includes(selectedUser._id.toString()) : false;
   const isTyping = Boolean(selectedUser?._id && typingUsers[selectedUser._id]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 

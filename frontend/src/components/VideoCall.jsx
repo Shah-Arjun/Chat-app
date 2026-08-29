@@ -12,6 +12,10 @@ function AudioCallView({ user, statusText, isConnected, isMuted, remoteStream })
   useEffect(() => {
     if (remoteAudioRef.current && remoteStream) {
       remoteAudioRef.current.srcObject = remoteStream;
+      const playPromise = remoteAudioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => console.warn("Audio play error:", err));
+      }
     }
   }, [remoteStream]);
 
@@ -135,14 +139,22 @@ function VideoCall() {
 
   // Wire streams to video elements
   useEffect(() => {
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream ?? null;
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+      const playPromise = localVideoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((e) => console.warn("Local video play error:", e));
+      }
     }
   }, [localStream]);
 
   useEffect(() => {
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = remoteStream ?? null;
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+      const playPromise = remoteVideoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((e) => console.warn("Remote video play error:", e));
+      }
     }
   }, [remoteStream]);
 

@@ -92,24 +92,47 @@ export const useAuthStore = create((set, get) => ({
 
     // this function connects the authenticated frontend user to the socket.io server
     connectSocket: () => {
-        const {authUser} = get()                             // get the current authenticated user from the store (from authUser state variable)
-        if(!authUser || get().socket?.connected) return     // if not authenticated user or socket is already connected, do nothing (dont connect socket again)
+        const { authUser, socket: existingSocket } = get()
+        if(!authUser) return
+        if(existingSocket?.connected) return
 
-        const socket = io(BASE_URL, {       // creates socket connection,  connect to the server using socket.io
+        if(existingSocket) {
+            existingSocket.disconnect()
+        }
+
+        const socket = io(BASE_URL, {
             withCredentials: true,
+            auth: {
+                userId: authUser._id,
+            },
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
         })
 
-        socket.connect()                // starts socket connection
+        socket.connect()
 
-        set({ socket: socket })         // update the socket state variable in the store with the connected socket instance
+        set({ socket: socket })
 
         // listen to online users event from server
         socket.on("getOnlineUsers", (userIds) => {
-            set({onlineUsers: userIds })
+            set({ onlineUsers: userIds })
+        })
+
+        socket.on("connect", () => {
+            console.log("Socket connected:", socket.id)
+        })
+
+        socket.on("connect_error", (error) => {
+            console.warn("Socket connection error:", error.message)
         })
     },
 
     disconnectSocket: () => {
-        if(get().socket?.connected) get().socket.disconnect()
+        const { socket } = get()
+        if(socket) {
+            socket.disconnect()
+            set({ socket: null, onlineUsers: [] })
+        }
     },
 }))
