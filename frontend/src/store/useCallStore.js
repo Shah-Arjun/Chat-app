@@ -35,12 +35,73 @@ const getRtcConfiguration = () => {
   };
 };
 
+const getAudioConstraints = (deviceId) => {
+  const base = {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+    sampleRate: 48000,
+    channelCount: 1,
+  };
+  if (deviceId) {
+    return { ...base, deviceId: { exact: deviceId } };
+  }
+  return base;
+};
+
+const preferOpusCodec = (peerConnection) => {
+  if (typeof RTCRtpSender === "undefined" || !RTCRtpSender.getCapabilities) return;
+  try {
+    const capabilities = RTCRtpSender.getCapabilities("audio");
+    if (!capabilities?.codecs) return;
+
+    const opusCodecs = capabilities.codecs.filter(
+      (c) => c.mimeType.toLowerCase() === "audio/opus"
+    );
+    const otherCodecs = capabilities.codecs.filter(
+      (c) => c.mimeType.toLowerCase() !== "audio/opus"
+    );
+    const preferred = [...opusCodecs, ...otherCodecs];
+
+    peerConnection.getTransceivers?.().forEach((transceiver) => {
+      if (transceiver.sender?.track?.kind === "audio" && transceiver.setCodecPreferences) {
+        try {
+          transceiver.setCodecPreferences(preferred);
+        } catch (_) {}
+      }
+    });
+  } catch (e) {
+    console.warn("Could not set audio codec preference:", e);
+  }
+};
+
+const optimizeSdpAudio = (sdp) => {
+  if (!sdp) return sdp;
+  return sdp
+    .replace(/a=fmtp:(\d+) minptime=\d+;useinbandfec=\d+/g, (match, pt) => {
+      return `a=fmtp:${pt} minptime=10;useinbandfec=1;usedtx=1;stereo=0;sprop-stereo=0;maxaveragebitrate=64000`;
+    })
+    .replace(/(a=rtpmap:(\d+) opus\/48000\/2)/gi, (match, full, pt) => {
+      if (!sdp.includes(`a=fmtp:${pt}`)) {
+        return `${full}\r\na=fmtp:${pt} minptime=10;useinbandfec=1;usedtx=1;stereo=0;sprop-stereo=0;maxaveragebitrate=64000`;
+      }
+      return full;
+    });
+};
+
 const stopCallMedia = (state) => {
   state.localStream?.getTracks().forEach((track) => {
     try {
       track.stop();
     } catch (e) {
-      console.warn("Error stopping track:", e);
+      console.warn("Error stopping local track:", e);
+    }
+  });
+  state.remoteStream?.getTracks().forEach((track) => {
+    try {
+      track.stop();
+    } catch (e) {
+      console.warn("Error stopping remote track:", e);
     }
   });
   if (state.peerConnection) {
@@ -205,17 +266,36 @@ export const useCallStore = create((set, get) => ({
       const { remoteStream: currentRemote } = get();
       const stream = currentRemote || remoteStream;
 
-      if (event.streams && event.streams[0]) {
-        event.streams[0].getTracks().forEach((track) => {
-          if (!stream.getTracks().some((t) => t.id === track.id)) {
-            stream.addTrack(track);
+      const incomingTracks = event.streams?.[0]?.getTracks() || (event.track ? [event.track] : []);
+
+      incomingTracks.forEach((track) => {
+        // If an old track of the same kind exists or has ended, remove it to prevent duplicate audio playback
+        stream.getTracks().forEach((existingTrack) => {
+          if (existingTrack.kind === track.kind && (existingTrack.id === track.id || existingTrack.readyState === "ended")) {
+            stream.removeTrack(existingTrack);
           }
         });
-      } else if (event.track) {
-        if (!stream.getTracks().some((t) => t.id === event.track.id)) {
-          stream.addTrack(event.track);
+
+        // Ensure only one active track per kind exists in remoteStream to prevent phase cancellation/comb filtering
+        const sameKind = stream.getTracks().filter((t) => t.kind === track.kind);
+        if (sameKind.length > 0 && !sameKind.some((t) => t.id === track.id)) {
+          sameKind.forEach((old) => {
+            stream.removeTrack(old);
+            try { old.stop(); } catch (_) {}
+          });
         }
-      }
+
+        if (!stream.getTracks().some((t) => t.id === track.id)) {
+          stream.addTrack(track);
+        }
+      });
+
+      // Filter out any ended tracks
+      stream.getTracks().forEach((t) => {
+        if (t.readyState === "ended") {
+          stream.removeTrack(t);
+        }
+      });
 
       set({ remoteStream: new MediaStream(stream.getTracks()) });
     };
@@ -241,12 +321,19 @@ export const useCallStore = create((set, get) => ({
   },
 
   getLocalStream: async (type = "video") => {
-    const { selectedAudioDeviceId, selectedVideoDeviceId } = get();
+    const { selectedAudioDeviceId, selectedVideoDeviceId, localStream: existingLocal } = get();
     const isAudioOnly = type === "audio";
 
-    const audioConstraints = selectedAudioDeviceId
-      ? { deviceId: { exact: selectedAudioDeviceId } }
-      : true;
+    // Clean up any existing local tracks before acquiring a new stream to prevent duplicate microphone streams
+    if (existingLocal) {
+      existingLocal.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch (_) {}
+      });
+    }
+
+    const audioConstraints = getAudioConstraints(selectedAudioDeviceId);
 
     const videoConstraints = isAudioOnly
       ? false
@@ -328,9 +415,13 @@ export const useCallStore = create((set, get) => ({
 
     const peerConnection = createPeerConnection(receiver._id);
     localStream.getTracks().forEach((track) => peerConnection.addTrack(track, localStream));
+    preferOpusCodec(peerConnection);
 
     try {
       const offer = await peerConnection.createOffer();
+      if (offer.sdp) {
+        offer.sdp = optimizeSdpAudio(offer.sdp);
+      }
       await peerConnection.setLocalDescription(offer);
       set({ callStatus: "connecting" });
       socket.emit("call-user", {
@@ -365,11 +456,15 @@ export const useCallStore = create((set, get) => ({
 
     const peerConnection = createPeerConnection(caller._id);
     localStream.getTracks().forEach((track) => peerConnection.addTrack(track, localStream));
+    preferOpusCodec(peerConnection);
 
     try {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       await get().flushCandidates();
       const answer = await peerConnection.createAnswer();
+      if (answer.sdp) {
+        answer.sdp = optimizeSdpAudio(answer.sdp);
+      }
       await peerConnection.setLocalDescription(answer);
       set({
         callStatus: "connected",
@@ -416,26 +511,29 @@ export const useCallStore = create((set, get) => ({
   toggleMute: () => {
     const { localStream, isMuted } = get();
     if (!localStream) return;
+    const nextMuted = !isMuted;
     localStream.getAudioTracks().forEach((track) => {
-      track.enabled = isMuted;
+      track.enabled = !nextMuted;
     });
-    set({ isMuted: !isMuted });
+    set({ isMuted: nextMuted });
   },
 
   toggleCamera: () => {
     const { localStream, isCameraOff } = get();
     if (!localStream) return;
+    const nextCameraOff = !isCameraOff;
     localStream.getVideoTracks().forEach((track) => {
-      track.enabled = isCameraOff;
+      track.enabled = !nextCameraOff;
     });
-    set({ isCameraOff: !isCameraOff });
+    set({ isCameraOff: nextCameraOff });
   },
 
   switchAudioDevice: async (deviceId) => {
     const { peerConnection, localStream } = get();
     try {
+      const audioConstraints = getAudioConstraints(deviceId);
       const newStream = await navigator.mediaDevices.getUserMedia({
-        audio: { deviceId: { exact: deviceId } },
+        audio: audioConstraints,
       });
       const newTrack = newStream.getAudioTracks()[0];
       if (!newTrack) return;
@@ -443,7 +541,9 @@ export const useCallStore = create((set, get) => ({
       const oldTrack = localStream?.getAudioTracks()[0];
       if (oldTrack && localStream) {
         localStream.removeTrack(oldTrack);
-        oldTrack.stop();
+        try {
+          oldTrack.stop();
+        } catch (_) {}
         localStream.addTrack(newTrack);
       }
 
@@ -476,7 +576,9 @@ export const useCallStore = create((set, get) => ({
       const oldTrack = localStream?.getVideoTracks()[0];
       if (oldTrack && localStream) {
         localStream.removeTrack(oldTrack);
-        oldTrack.stop();
+        try {
+          oldTrack.stop();
+        } catch (_) {}
         localStream.addTrack(newTrack);
       }
 
@@ -494,6 +596,37 @@ export const useCallStore = create((set, get) => ({
     } catch (err) {
       console.error("Error switching camera:", err);
       toast.error("Could not switch camera.");
+    }
+  },
+
+  getAudioStats: async () => {
+    const { peerConnection } = get();
+    if (!peerConnection) return null;
+    try {
+      const stats = await peerConnection.getStats();
+      let inboundAudio = null;
+      let outboundAudio = null;
+
+      stats.forEach((report) => {
+        if (report.type === "inbound-rtp" && report.kind === "audio") {
+          inboundAudio = {
+            packetsLost: report.packetsLost || 0,
+            jitter: report.jitter || 0,
+            bytesReceived: report.bytesReceived || 0,
+            audioLevel: report.audioLevel ?? null,
+            totalAudioEnergy: report.totalAudioEnergy ?? null,
+          };
+        } else if (report.type === "outbound-rtp" && report.kind === "audio") {
+          outboundAudio = {
+            bytesSent: report.bytesSent || 0,
+            packetsSent: report.packetsSent || 0,
+          };
+        }
+      });
+      return { inboundAudio, outboundAudio };
+    } catch (err) {
+      console.warn("Error getting audio stats:", err);
+      return null;
     }
   },
 
