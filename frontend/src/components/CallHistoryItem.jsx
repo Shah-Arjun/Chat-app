@@ -9,9 +9,12 @@ function formatDuration(seconds) {
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
   if (h > 0) {
-    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${h}h ${m}m`;
   }
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  if (m > 0) {
+    return `${m}m ${s}s`;
+  }
+  return `${s}s`;
 }
 
 function formatTime(dateStr) {
@@ -28,38 +31,50 @@ function CallHistoryItem({ call }) {
   const { selectedUser } = useChatStore();
 
   const isAudio = call.callType === "audio";
-  const isOutgoing = call.callerId?.toString() === authUser?._id?.toString();
+  const callerIdStr = (call.callerId?._id || call.callerId || call.senderId?._id || call.senderId)?.toString();
+  const myIdStr = authUser?._id?.toString();
+  const isOutgoing = callerIdStr === myIdStr;
+
   const duration = call.status === "completed" ? formatDuration(call.duration) : null;
   const timestamp = formatTime(call.createdAt || call.startedAt);
 
-  let label = isAudio ? "Audio call" : "Video call";
+  let label = isOutgoing
+    ? (isAudio ? "Outgoing audio call" : "Outgoing video call")
+    : (isAudio ? "Incoming audio call" : "Incoming video call");
+
   let IconComponent = isAudio ? (isOutgoing ? PhoneCall : PhoneIncoming) : Video;
-  let color = "text-emerald-400";
-  let bg = "bg-emerald-500/10 border-emerald-500/20";
+  let iconColor = "text-emerald-400";
+  let iconBg = "bg-emerald-500/15 border border-emerald-500/30";
 
   if (call.status === "missed") {
-    label = isOutgoing ? `Unanswered ${isAudio ? "audio call" : "video call"}` : `Missed ${isAudio ? "audio call" : "video call"}`;
-    IconComponent = PhoneMissed;
-    color = "text-amber-400";
-    bg = "bg-amber-500/10 border-amber-500/20";
+    label = isOutgoing
+      ? `Unanswered ${isAudio ? "audio call" : "video call"}`
+      : `Missed ${isAudio ? "audio call" : "video call"}`;
+    IconComponent = isOutgoing ? PhoneOff : PhoneMissed;
+    iconColor = isOutgoing ? "text-amber-400" : "text-rose-400";
+    iconBg = isOutgoing
+      ? "bg-amber-500/15 border border-amber-500/30"
+      : "bg-rose-500/15 border border-rose-500/30";
   } else if (call.status === "rejected") {
-    label = `Declined ${isAudio ? "audio call" : "video call"}`;
+    label = isOutgoing
+      ? `Declined ${isAudio ? "audio call" : "video call"}`
+      : `Declined ${isAudio ? "audio call" : "video call"}`;
     IconComponent = PhoneOff;
-    color = "text-rose-400";
-    bg = "bg-rose-500/10 border-rose-500/20";
+    iconColor = "text-rose-400";
+    iconBg = "bg-rose-500/15 border border-rose-500/30";
   } else if (call.status === "cancelled") {
     label = `Cancelled ${isAudio ? "audio call" : "video call"}`;
     IconComponent = isAudio ? PhoneOff : VideoOff;
-    color = "text-slate-400";
-    bg = "bg-slate-800/40 border-slate-700/30";
+    iconColor = "text-slate-400";
+    iconBg = "bg-slate-700/30 border border-slate-600/30";
   } else if (call.status === "pending") {
-    label = `${isAudio ? "Audio" : "Video"} call`;
+    label = `${isOutgoing ? "Outgoing" : "Incoming"} ${isAudio ? "audio" : "video"} call`;
     IconComponent = isAudio ? Phone : Video;
-    color = "text-cyan-400";
-    bg = "bg-cyan-500/10 border-cyan-500/20";
+    iconColor = "text-cyan-400";
+    iconBg = "bg-cyan-500/15 border border-cyan-500/30";
   }
 
-  const isPartnerOnline = selectedUser ? onlineUsers.includes(selectedUser._id) : false;
+  const isPartnerOnline = selectedUser?._id ? onlineUsers.includes(selectedUser._id.toString()) : false;
 
   const handleCallBack = () => {
     if (!selectedUser || !isPartnerOnline || callStatus !== "idle") return;
@@ -67,35 +82,57 @@ function CallHistoryItem({ call }) {
   };
 
   return (
-    <div className="flex justify-center my-3 group">
+    <div className={`flex my-2 animate-slide-up ${isOutgoing ? "justify-end" : "justify-start"}`}>
       <div
-        className={`inline-flex items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm ${bg} transition-all shadow-sm`}
+        className={`
+          flex items-center gap-3 px-3.5 py-2.5 rounded-2xl border
+          max-w-[85%] sm:max-w-[75%] md:max-w-[65%] shadow-sm
+          ${isOutgoing
+            ? "bg-[#132238] border-slate-700/60 rounded-br-sm"
+            : "bg-[#141c2e] border-slate-800 rounded-bl-sm"
+          }
+        `}
       >
-        {/* Direction indicator */}
+        {/* Call Icon Badge */}
         <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-900/60 ${color}`}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}
         >
-          <IconComponent size={15} />
+          <IconComponent className="h-4 w-4" />
         </div>
 
-        <div className="flex flex-col leading-tight">
-          <span className={`font-semibold text-xs sm:text-sm ${color}`}>{label}</span>
-          <span className="text-[11px] text-slate-400 mt-0.5">
-            {duration ? `Duration: ${duration} · ` : null}
-            {timestamp}
+        {/* Call Info */}
+        <div className="flex flex-col min-w-0 leading-tight">
+          <span className={`font-semibold text-xs sm:text-sm truncate ${call.status === "missed" && !isOutgoing ? "text-rose-300" : "text-slate-200"}`}>
+            {label}
+          </span>
+          <span className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+            {duration && (
+              <>
+                <span className="font-medium text-slate-300">{duration}</span>
+                <span>•</span>
+              </>
+            )}
+            <span>{timestamp}</span>
           </span>
         </div>
 
-        {/* Callback Button */}
+        {/* Quick Call Back Button */}
         {selectedUser && (
           <button
             onClick={handleCallBack}
             disabled={!isPartnerOnline || callStatus !== "idle"}
-            title={isPartnerOnline ? `Call back (${isAudio ? "Audio" : "Video"})` : "User is offline"}
+            title={
+              isPartnerOnline
+                ? `Call back (${isAudio ? "Audio" : "Video"})`
+                : "User is offline"
+            }
             aria-label={`Call back ${isAudio ? "Audio" : "Video"}`}
-            className="ml-2 rounded-lg bg-slate-800/80 p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="ml-auto shrink-0 flex items-center justify-center h-8 w-8 rounded-lg
+                       bg-slate-800/90 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300
+                       border border-slate-700/50 hover:border-cyan-500/40
+                       transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            {isAudio ? <Phone size={13} /> : <Video size={13} />}
+            {isAudio ? <Phone className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
           </button>
         )}
       </div>
