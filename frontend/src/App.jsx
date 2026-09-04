@@ -26,44 +26,41 @@ function App() {
   if(isCheckingAuth) return <PageLoader />
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#07111f]">
+    <div className="relative h-dvh w-full overflow-hidden bg-[#070e1c] flex flex-col justify-center items-center">
+      {/* Crisp Dark Background with subtle mesh lines */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#070e1c] via-[#091326] to-[#040812]" />
 
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#07111f] via-[#0b1328] to-[#040814]" />
+      {/* Subtle non-blurry ambient radial glows */}
+      <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-cyan-600/10" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-blue-600/10" />
 
-      {/* Glass Aurora */}
-      <div className="absolute -top-52 -left-52 h-[650px] w-[650px] rounded-full bg-cyan-500/20 blur-[150px]" />
-      <div className="absolute top-1/3 -right-40 h-[550px] w-[550px] rounded-full bg-blue-500/20 blur-[150px]" />
-      <div className="absolute bottom-[-250px] left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-violet-600/20 blur-[180px]" />
+      {/* Crisp subtle grid */}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] bg-[size:40px_40px]" />
 
-      {/* Light */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,.08),transparent_55%)]" />
-      {/* Glass Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
-
-      {/* Noise */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: "radial-gradient(rgba(255,255,255,.5) 0.5px, transparent 0.5px)",
-          backgroundSize: "16px 16px",
-        }}
-      />
-
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/20" />
-
-      {/* Page */}
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-2 sm:p-5">
+      {/* Main App Container */}
+      <main className="relative z-10 h-full w-full flex flex-col overflow-hidden">
         <Routes>
           <Route path="/" element={ authUser ? <ChatPage /> : <Navigate to="/login" /> } />
           <Route path="/login" element={ !authUser ? <Login /> : <Navigate to="/" />} />
           <Route path="/signup" element={ !authUser ? <SignUp /> : <Navigate to="/" /> } />
         </Routes>
-      </div>
+      </main>
 
-      {/* Global overlays – rendered outside the page wrapper so they appear above everything */}
-      <Toaster position="top-right" toastOptions={{ style: { background: '#1e293b', color: '#e2e8f0', border: '1px solid #334155' } }} />
+      {/* Global Overlays (Toaster, IncomingCall modal, Active Call modal) */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: 'rgba(15, 23, 42, 0.95)',
+            color: '#f8fafc',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(12px)',
+            borderRadius: '12px',
+            fontSize: '14px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+          },
+        }}
+      />
       <IncomingCall />
       <VideoCall />
     </div>

@@ -18,16 +18,20 @@ export const useChatStore = create((set, get) => ({
     isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true, // boolean to enable or disable sound notifications
     selectedMessages: [], // array to hold the ids of selected messages for deletion
     typingUsers: {}, // { [userId]: boolean } - tracks users currently typing to me
-
+    searchQuery: "",
 
     // state update functions
+    setSearchQuery: (query) => {
+        set({ searchQuery: query })
+    },
+
     toggleSound: () => {
         localStorage.setItem("isSoundEnabled", !get().isSoundEnabled)  // change the value in localStorage
         set({ isSoundEnabled: !get().isSoundEnabled })  // update the state variable
     },       
     
     setActiveTab: (tab) => {
-        set({ activeTab: tab })
+        set({ activeTab: tab, searchQuery: "" })
     },
 
     setSelectedUser: (selectedUser) => {
