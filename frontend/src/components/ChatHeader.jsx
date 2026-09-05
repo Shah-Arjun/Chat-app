@@ -6,6 +6,7 @@ import { useChatStore } from "../store/useChatStore";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useCallStore } from "../store/useCallStore";
+import TypingIndicator from "./ui/TypingIndicator";
 
 function ChatHeader({ onMenuOpen }) {
   const {
@@ -84,11 +85,7 @@ function ChatHeader({ onMenuOpen }) {
           <div className="flex items-center gap-1.5 min-h-[15px] mt-px">
             {isTyping ? (
               <span className="text-cyan-400 text-[11px] font-medium flex items-center gap-1.5">
-                <span className="flex gap-0.5">
-                  <span className="typing-dot" style={{ animationDelay: "0ms" }} />
-                  <span className="typing-dot" style={{ animationDelay: "160ms" }} />
-                  <span className="typing-dot" style={{ animationDelay: "320ms" }} />
-                </span>
+                <TypingIndicator />
                 typing…
               </span>
             ) : (

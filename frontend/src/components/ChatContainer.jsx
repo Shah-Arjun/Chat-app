@@ -6,6 +6,7 @@ import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder";
 import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
 import CallHistoryItem from "./CallHistoryItem";
+import TypingIndicator from "./ui/TypingIndicator";
 import { Check, CheckCheck, X, Download } from "lucide-react";
 
 function ChatContainer() {
@@ -158,9 +159,7 @@ function ChatContainer() {
                 />
                 <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl rounded-bl-sm
                                 px-4 py-3 flex items-center gap-1 shadow-sm">
-                  <span className="typing-dot" style={{ animationDelay: "0ms" }} />
-                  <span className="typing-dot" style={{ animationDelay: "160ms" }} />
-                  <span className="typing-dot" style={{ animationDelay: "320ms" }} />
+                  <TypingIndicator />
                 </div>
               </div>
             )}
@@ -178,9 +177,7 @@ function ChatContainer() {
               <div className="max-w-3xl mx-auto mt-4 flex items-center gap-2 animate-fade-in">
                 <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl
                                 px-4 py-3 flex items-center gap-1">
-                  <span className="typing-dot" style={{ animationDelay: "0ms" }} />
-                  <span className="typing-dot" style={{ animationDelay: "160ms" }} />
-                  <span className="typing-dot" style={{ animationDelay: "320ms" }} />
+                  <TypingIndicator />
                 </div>
               </div>
             )}

@@ -4,13 +4,20 @@ import { useState, useRef } from "react";
 import { LogOutIcon, Volume2Icon, VolumeXIcon, Camera, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 
 function ProfileHeader() {
   const { authUser, updateProfile, isUpdatingProfile, logout } = useAuthStore();
   const { isSoundEnabled, toggleSound } = useChatStore();
   const [selectedImg, setSelectedImg] = useState(null);
   const fileInputRef = useRef(null);
+  // Lazy-init the click sound scoped to this component
+  const clickSoundRef = useRef(null);
+  const getClickSound = () => {
+    if (!clickSoundRef.current) {
+      clickSoundRef.current = new Audio("/sounds/mouse-click.mp3");
+    }
+    return clickSoundRef.current;
+  };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -33,11 +40,15 @@ function ProfileHeader() {
   };
 
   const handleSoundToggle = () => {
-    mouseClickSound.currentTime = 0;
-    mouseClickSound.play().catch(() => {});
+    const sound = getClickSound();
+    sound.currentTime = 0;
+    sound.play().catch(() => {});
+    // toggleSound uses functional updater, so we read the *current* store value
+    // after the toggle to show the correct toast message.
+    const willBeEnabled = !isSoundEnabled;
     toggleSound();
-    toast.success(isSoundEnabled ? "Sound notifications disabled" : "Sound notifications enabled", {
-      icon: isSoundEnabled ? "🔇" : "🔔",
+    toast.success(willBeEnabled ? "Sound notifications enabled" : "Sound notifications disabled", {
+      icon: willBeEnabled ? "🔔" : "🔇",
       duration: 1500,
     });
   };

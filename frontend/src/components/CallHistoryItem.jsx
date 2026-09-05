@@ -58,7 +58,7 @@ function CallHistoryItem({ call }) {
   } else if (call.status === "rejected") {
     label = isOutgoing
       ? `Declined ${isAudio ? "audio call" : "video call"}`
-      : `Declined ${isAudio ? "audio call" : "video call"}`;
+      : `Rejected ${isAudio ? "audio call" : "video call"}`;
     IconComponent = PhoneOff;
     iconColor = "text-rose-400";
     iconBg = "bg-rose-500/15 border border-rose-500/30";

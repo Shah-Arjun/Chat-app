@@ -16,7 +16,7 @@ export const useAuthStore = create((set, get) => ({
     isLoggingIn: false,
     isUpdatingProfile: false,
     socket: null,            // stores socket instance/connection
-    onlineUsers: [],         // stoes online users ids received from server
+    onlineUsers: [],         // stores online user ids received from server
 
     // state update functions
     checkAuth: async () => {
@@ -36,11 +36,10 @@ export const useAuthStore = create((set, get) => ({
         try {
             set({ isSigningUp: true })
             const res = await axiosInstance.post("/auth/signup", data)
-            set({ authUser: res.data, isSigningUp: false })
+            set({ authUser: res.data })
             toast.success("Account created successfully!")
             get().connectSocket()  // connect socket after successful signup
         } catch (error) {
-            set({ isSigningUp: false })
             toast.error(error.response?.data?.message || "Error in signup")
         } finally {
             set({ isSigningUp: false })
@@ -51,11 +50,10 @@ export const useAuthStore = create((set, get) => ({
         try {
             set({ isLoggingIn: true })
             const res = await axiosInstance.post("/auth/login", data)
-            set({ authUser: res.data, isLoggingIn: false })
+            set({ authUser: res.data })
             toast.success("Login successful!")
             get().connectSocket()  // connect socket after successful login
         } catch (error) {
-            set({ isLoggingIn: false })
             toast.error(error.response?.data?.message || "Error in login")
         } finally {
             set({ isLoggingIn: false })
