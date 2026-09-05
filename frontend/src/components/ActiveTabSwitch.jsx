@@ -35,9 +35,10 @@ function ActiveTabSwitch() {
       </div>
 
       {/* ── Segmented Tab Pill ── */}
-      <div className="flex rounded-xl bg-[#141e34] p-1 border border-slate-700/60 gap-1">
+      <div role="tablist" className="flex rounded-xl bg-[#141e34] p-1 border border-slate-700/60 gap-1">
         {/* Chats Tab */}
         <button
+          role="tab"
           onClick={() => setActiveTab("chats")}
           className={`
             flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 px-2
@@ -68,6 +69,7 @@ function ActiveTabSwitch() {
 
         {/* Contacts Tab */}
         <button
+          role="tab"
           onClick={() => setActiveTab("contacts")}
           className={`
             flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 px-2
