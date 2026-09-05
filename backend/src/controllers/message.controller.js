@@ -12,12 +12,10 @@ export const getAllContacts = async (req, res) => {
 
         res.status(200).json(filteredUsers );
     } catch (error) {
-        console.log("Error in getAllContacts", error)
+        console.error("Error in getAllContacts", error)
         res.status(500).json({ message: 'Error fetching contacts', error });
     }
 }
-
-
 
 export const getMessagesByUserId = async (req, res) => {
     try {
@@ -48,13 +46,10 @@ export const getMessagesByUserId = async (req, res) => {
 
         return res.status(200).json(history)
     } catch (error) {
-        console.log("Error in getMessagesByUserId", error)
+        console.error("Error in getMessagesByUserId", error)
         res.status(500).json({ message: 'Error fetching messages', error });
     }
 }
-
-
-
 
 export const sendMessage = async(req, res) => {
     try {
@@ -85,14 +80,10 @@ export const sendMessage = async(req, res) => {
 
         res.status(201).json(newMessage)   // send saved messages back to receiver, so that it can be displayed in the chat window
     } catch (error) {
-        console.log("Error in sendMessage", error)
+        console.error("Error in sendMessage", error)
         res.status(500).json({ message: 'Error sending message', error });
     }
 }
-
-
-
-
 
 export const getChatPartners = async (req, res) => {
     try {
@@ -114,11 +105,10 @@ export const getChatPartners = async (req, res) => {
 
         res.status(200).json(chatPartners)
     } catch (error) {
-        console.log("Error in getChatPartners", error)
+        console.error("Error in getChatPartners", error)
         res.status(500).json({ message: 'Error fetching chat partners', error });
     }
 }
-
 
 export const deleteMyMessage =async(req, res) => {
     try {
@@ -146,7 +136,7 @@ export const deleteMyMessage =async(req, res) => {
             msgIds: msgIds,
     });
     } catch (error) {
-        console.log("Error deleting message", error)
+        console.error("Error deleting message", error)
         res.status(500).json({ message: 'Error deleting message', error });
     }
 }
