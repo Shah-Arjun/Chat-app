@@ -36,8 +36,7 @@ export const signup = async(req, res) => {
         })
 
         if(newUser) {
-            const savedUser = await newUser.save()
-            generateToken(savedUser._id, res)
+            generateToken(newUser._id, res)
             res.status(201).json({
                 _id: newUser._id,
                 fullName: newUser.fullName,
@@ -46,7 +45,7 @@ export const signup = async(req, res) => {
             })
 
             try {
-                await sendWelcomeEmail(savedUser.email, savedUser.fullName, ENV.CLIENT_URL)
+                await sendWelcomeEmail(newUser.email, newUser.fullName, ENV.CLIENT_URL)
             } catch (error) {
                 console.error("Failed to send welcome email:", error)
             }
@@ -58,9 +57,6 @@ export const signup = async(req, res) => {
         res.status(500).json({ message: "Internal server error" })
     }
 }
-
-
-
 
 export const login = async(req, res) => {
     const { email, password } = req.body
@@ -90,14 +86,12 @@ export const login = async(req, res) => {
             profilePic: userExists.profilePic
         })
     } catch (err) {
-        console.log("Login error", err)
+        console.error("Login error", err)
         return res.status(500).json({
             message: "Internal server error"
         })
     }
 }
-
-
 
 export const logout = async(_, res) => {
     try {
@@ -140,20 +134,18 @@ export const updateProfile = async(req, res) => {
             user: updatedUser
         })
     }catch (err) {
-        console.log("Update user error", err)
+        console.error("Update user error", err)
         return res.status(500).json({
             message: "Internal server error"
         })
     }
 }
 
-
-
 export const checkAuth = (req, res) => {
     try {
         res.status(200).json(req.user)
     } catch (error) {
-        console.log("Error in checkAuth controller", error.message)
+        console.error("Error in checkAuth controller", error.message)
         res.status(500).json({ message: "Internal server error"})
     }
-} 
+}

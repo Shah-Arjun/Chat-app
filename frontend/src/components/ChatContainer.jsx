@@ -34,6 +34,7 @@ function ChatContainer() {
     return () => { unsubscribeFromMessages(); };
   }, [selectedUser, getMessagesByUserId, subscribeToMessages, unsubscribeFromMessages]);
 
+
   const scrollToBottom = (behavior = "smooth") => {
     if (messageFeedRef.current) {
       messageFeedRef.current.scrollTo({
@@ -53,40 +54,31 @@ function ChatContainer() {
     scrollToBottom("smooth");
   }, [messages, isPartnerTyping]);
 
+
+
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       {/* Fixed Header */}
       <ChatHeader />
 
       {/* Scrollable Message Feed */}
-      <div
-        ref={messageFeedRef}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 sm:px-5 py-4 sm:py-6"
-      >
+      <div ref={messageFeedRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 sm:px-5 py-4 sm:py-6">
         {messages.length > 0 && !isMessagesLoading ? (
-          <div className="max-w-3xl mx-auto space-y-2">
+          <div className="max-w-7xl mx-auto space-y-2">
             {messages.map((msg, index) => {
               // Call history items
               if (msg.type === "call") {
                 return <CallHistoryItem key={msg._id || index} call={msg} />;
               }
 
-              const isMine =
-                msg.senderId === authUser._id ||
-                msg.senderId?._id === authUser._id ||
-                msg.senderId?.toString() === authUser._id?.toString();
-
+              const isMine = msg.senderId === authUser._id || msg.senderId?._id === authUser._id || msg.senderId?.toString() === authUser._id?.toString();
               const isSelected = selectedMessages.includes(msg._id);
 
               return (
-                <div
-                  key={msg._id || index}
-                  className={`flex flex-col ${isMine ? "items-end" : "items-start"} animate-slide-up group`}
-                >
+                <div key={msg._id || index} className={`flex flex-col ${isMine ? "items-end" : "items-start"} animate-slide-up group`}>
                   <div className={`relative max-w-[82%] sm:max-w-[72%] md:max-w-[62%] ${isMine ? "" : "ml-0"}`}>
                     {/* Bubble */}
-                    <div
-                      onClick={() => toggleMessageSelection(msg._id)}
+                    <div onClick={() => toggleMessageSelection(msg._id)}
                       className={`
                         msg-bubble
                         ${isMine ? "msg-bubble-sender" : "msg-bubble-receiver"}
@@ -114,8 +106,7 @@ function ChatContainer() {
                               e.stopPropagation();
                               setLightboxImage(msg.image);
                             }}
-                            className="max-h-64 sm:max-h-80 w-full object-cover rounded-xl
-                                       cursor-zoom-in hover:opacity-95 transition-opacity duration-150"
+                            className="max-h-64 sm:max-h-80 w-full object-cover rounded-xl cursor-zoom-in hover:opacity-95 transition-opacity duration-150" 
                             loading="lazy"
                           />
                         </div>
@@ -123,16 +114,11 @@ function ChatContainer() {
 
                       {/* Text */}
                       {msg.text && (
-                        <p className="text-sm sm:text-[14.5px] leading-relaxed break-words whitespace-pre-wrap">
-                          {msg.text}
-                        </p>
+                        <p className="text-sm sm:text-[14.5px] leading-relaxed break-words whitespace-pre-wrap"> {msg.text} </p>
                       )}
 
                       {/* Timestamp + Read Receipt */}
-                      <div
-                        className={`flex items-center justify-end gap-1 mt-1.5 text-[10px]
-                          ${isMine ? "text-cyan-100/70" : "text-slate-500"}`}
-                      >
+                      <div className={`flex items-center justify-end gap-1 mt-1.5 text-[10px] ${isMine ? "text-cyan-100/70" : "text-slate-500"}`}>
                         <span>
                           {new Date(msg.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
@@ -157,8 +143,7 @@ function ChatContainer() {
                   alt={selectedUser.fullName}
                   className="w-6 h-6 rounded-full object-cover border border-cyan-500/30 shadow-sm mb-0.5"
                 />
-                <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl rounded-bl-sm
-                                px-4 py-3 flex items-center gap-1 shadow-sm">
+                <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-1 shadow-sm">
                   <TypingIndicator />
                 </div>
               </div>
@@ -175,8 +160,7 @@ function ChatContainer() {
             {/* Typing when no messages yet */}
             {isPartnerTyping && (
               <div className="max-w-3xl mx-auto mt-4 flex items-center gap-2 animate-fade-in">
-                <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl
-                                px-4 py-3 flex items-center gap-1">
+                <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl px-4 py-3 flex items-center gap-1">
                   <TypingIndicator />
                 </div>
               </div>
@@ -194,8 +178,7 @@ function ChatContainer() {
       {/* Image Lightbox */}
       {lightboxImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center
-                     bg-black/92 backdrop-blur-lg p-4 animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/92 backdrop-blur-lg p-4 animate-fade-in"
           onClick={() => setLightboxImage(null)}
         >
           <div
@@ -205,9 +188,7 @@ function ChatContainer() {
             {/* Close button (top-right) */}
             <button
               onClick={() => setLightboxImage(null)}
-              className="absolute -top-3 -right-3 z-10 h-8 w-8 flex items-center justify-center
-                         rounded-full bg-slate-800 border border-slate-700
-                         text-slate-300 hover:text-white hover:bg-slate-700 transition-colors shadow-lg"
+              className="absolute -top-3 -right-3 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors shadow-lg"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
@@ -224,9 +205,7 @@ function ChatContainer() {
               download="image.png"
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 rounded-xl bg-slate-800/90 border border-slate-700
-                         px-4 py-2 text-xs font-semibold text-white
-                         hover:bg-slate-700 transition-colors"
+              className="flex items-center gap-2 rounded-xl bg-slate-800/90 border border-slate-700 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-700 transition-colors"
             >
               <Download className="h-3.5 w-3.5" />
               Download
