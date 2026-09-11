@@ -72,7 +72,7 @@ io.on("connection", (socket) => {
     io.emit("getOnlineUsers", Object.keys(userSocketsMap))  
 
 
-    // ─── TYPING INDICATORS ──────────────────────────────────────────────────
+    // ====== TYPING INDICATORS ==============================================
     socket.on("typing:start", ({ to }) => {
         if (!to || to.toString() === userId) return;
         io.to(to.toString()).emit("typing:start", {
@@ -88,7 +88,7 @@ io.on("connection", (socket) => {
     });
 
 
-    // ─── DISCONNECT ─────────────────────────────────────────────────────────────
+    // ====== DISCONNECT ======================================================
     socket.on("disconnect", async () => {
         console.log(`User disconnected: ${socket.user?.fullName || userId}`)
         if (userSocketsMap[userId]) {
@@ -131,7 +131,7 @@ io.on("connection", (socket) => {
     });
 
 
-    // ─── START A CALL ────────────────────────────────────────────────────────────
+    // ===== START A CALL ============================================================
     socket.on("call-user", async ({ to, offer, callType = "video" }) => {
         if (!to || to.toString() === userId) return;
         const targetOnline = userSocketsMap[to.toString()] && userSocketsMap[to.toString()].size > 0;
@@ -175,7 +175,7 @@ io.on("connection", (socket) => {
     });
 
 
-    // ─── ACCEPT A CALL ───────────────────────────────────────────────────────────
+    // ===== ACCEPT A CALL ===================================================
     socket.on("call-accepted", async ({ to, answer, callId }) => {
         if (!to || !callId) return;
 
@@ -204,7 +204,7 @@ io.on("connection", (socket) => {
     });
 
 
-    // ─── REJECT A CALL ───────────────────────────────────────────────────────────
+    // ======= REJECT A CALL ===============================================
     socket.on("call-rejected", async ({ to, callId, status }) => {
         if (!to) return;
 
@@ -230,7 +230,7 @@ io.on("connection", (socket) => {
     });
 
 
-    // ─── ICE CANDIDATE ───────────────────────────────────────────────────────────
+    // ====== ICE CANDIDATE =====================================================
     socket.on("ice-candidate", ({ to, candidate }) => {
         if (!to || !candidate) return;
         io.to(to.toString()).emit("ice-candidate", {
@@ -240,7 +240,7 @@ io.on("connection", (socket) => {
     });
 
 
-    // ─── END CALL ────────────────────────────────────────────────────────────────
+    // ======== END CALL ========================================================
     socket.on("call-ended", async ({ to, callId, accepted }) => {
         if (!to) return;
 
