@@ -1,11 +1,11 @@
 import toast from "react-hot-toast";
 import { create } from "zustand";
 
-// Dynamically construct STUN/TURN configuration from environment variables or defaults
+// WebRTC configuration helper functions
 const getRtcConfiguration = () => {
   const envStun = import.meta.env.VITE_STUN_SERVERS;
   const stunList = envStun
-    ? envStun.split(",").map((s) => ({ urls: s.trim() })).filter((s) => Boolean(s.urls))
+    ? envStun.split(",").map((s) => ({ urls: s.trim() })).filter((s) => Boolean(s.urls))      // use customyy STUN servers, convert it into an array of WebRTC server objects.
     : [
         { urls: "stun:stun.l.google.com:19302" },
         { urls: "stun:stun1.l.google.com:19302" },

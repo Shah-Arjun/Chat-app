@@ -27,10 +27,10 @@ function App() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-[#070e1c] flex flex-col justify-center items-center">
-      {/* Crisp Dark Background with subtle mesh lines */}
+      {/* Background gradient */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#070e1c] via-[#091326] to-[#040812]" />
 
-      {/* Subtle non-blurry ambient radial glows */}
+      {/* Ambient radial glows ----- left-top and right-bottom */}
       <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-cyan-600/10" />
       <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-blue-600/10" />
 
