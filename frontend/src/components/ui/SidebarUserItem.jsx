@@ -4,13 +4,15 @@ import TypingIndicator from "./TypingIndicator";
  * SidebarUserItem
  * Reusable sidebar row used by both ChatList and ContactList.
  *
- * @param {object}   user        - User object { _id, fullName, profilePic }
- * @param {boolean}  isSelected  - Whether this item is the active conversation
- * @param {boolean}  isOnline    - Whether the user is currently online
- * @param {boolean}  [isTyping]  - Whether the user is currently typing (chat list only)
- * @param {string}   [subText]   - Secondary line of text below the name
- * @param {function} onClick     - Click handler
+ * @param {object}   user           - User object containing user details (fullName, profilePic, etc.)
+ * @param {boolean}  isSelected     - Indicates if the user is currently selected in the sidebar
+ * @param {boolean}  isOnline       - Indicates if the user is currently online
+ * @param {boolean}  [isTyping]    - Indicates if the user is currently typing (default: false)
+ * @param {string}   [subText]     - Optional sub-text to display under the user's name
+ * @param {function} onClick        - Function to call when the user is clicked
  */
+
+
 function SidebarUserItem({ user, isSelected, isOnline, isTyping = false, subText = "", onClick }) {
   return (
     <button
@@ -22,10 +24,7 @@ function SidebarUserItem({ user, isSelected, isOnline, isTyping = false, subText
     >
       {/* Active left accent bar */}
       {isSelected && (
-        <span
-          className="absolute left-0 top-2.5 bottom-2.5 w-[3px]
-                     bg-cyan-400 rounded-r-full shadow-glow-bar"
-        />
+        <span className="absolute left-0 top-2.5 bottom-2.5 w-[3px] bg-cyan-400 rounded-r-full shadow-glow-bar" />
       )}
 
       {/* Avatar + online badge */}
@@ -33,21 +32,14 @@ function SidebarUserItem({ user, isSelected, isOnline, isTyping = false, subText
         <img
           src={user.profilePic || "/avatar.png"}
           alt={user.fullName}
-          className={`
-            h-11 w-11 sm:h-12 sm:w-12 rounded-full object-cover
-            border-2 shadow-sm transition-all duration-200
-            ${isSelected
-              ? "border-cyan-500/50"
-              : "border-slate-700/60 group-hover:border-slate-600/80"
-            }
+          className={`h-11 w-11 sm:h-12 sm:w-12 rounded-full object-cover border-2 shadow-sm transition-all duration-200
+            ${isSelected ? "border-cyan-500/50" : "border-slate-700/60 group-hover:border-slate-600/80"}
           `}
           loading="lazy"
         />
         <span
-          className={`
-            absolute bottom-0 right-0 h-3 w-3 rounded-full
-            border-2 border-slate-900 shadow-sm
-            ${isOnline ? "bg-emerald-500 animate-pulse-dot" : "bg-slate-600"}
+          className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-slate-900 shadow-sm
+            ${isOnline ? "bg-emerald-500 animate-pulse-dot" : ""}
           `}
           title={isOnline ? "Online" : "Offline"}
         />
@@ -56,8 +48,7 @@ function SidebarUserItem({ user, isSelected, isOnline, isTyping = false, subText
       {/* Name + status */}
       <div className="min-w-0 flex-1 text-left">
         <div className="flex items-center justify-between gap-1 mb-0.5">
-          <h3
-            className={`font-semibold text-sm truncate leading-tight ${
+          <h3 className={`font-semibold text-sm truncate leading-tight ${
               isSelected ? "text-cyan-200" : "text-slate-100"
             }`}
           >
@@ -66,13 +57,9 @@ function SidebarUserItem({ user, isSelected, isOnline, isTyping = false, subText
 
           {/* Online/Offline pill */}
           {isOnline ? (
-            <span className="shrink-0 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-1.5 py-px leading-none">
-              Active
-            </span>
+            <span className="shrink-0 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-1.5 py-px leading-none">Active</span>
           ) : (
-            <span className="shrink-0 text-[10px] font-medium text-slate-500">
-              Offline
-            </span>
+            <span className="shrink-0 text-[10px] font-medium text-slate-500">Offline</span>
           )}
         </div>
 
