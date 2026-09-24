@@ -25,12 +25,10 @@ function Login() {
           <div className="w-full flex flex-col md:flex-row min-h-[520px] md:min-h-[600px]">
 
             {/* ── Left: Form ── */}
-            <div className="flex-1 md:max-w-md p-6 sm:p-10 flex flex-col justify-center
-                            md:border-r border-slate-700/40">
+            <div className="flex-1 md:max-w-md p-6 sm:p-10 flex flex-col justify-center md:border-r border-slate-700/40">
               {/* Brand / Heading */}
               <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl
-                                bg-gradient-to-br from-cyan-500/20 to-blue-500/15
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/15
                                 border border-cyan-500/25 shadow-lg shadow-cyan-500/10 mb-4">
                   <MessageCircle className="w-7 h-7 text-cyan-400" />
                 </div>
