@@ -7,6 +7,7 @@ import { ImagePlus, Send, X, Smile } from "lucide-react";
 
 const QUICK_EMOJIS = ["❤️", "👍", "🔥", "😂", "😮", "🎉", "🙏", "💯", "😍", "✨", "🤝", "👏"];
 
+
 function MessageInput() {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
   const [text, setText] = useState("");
@@ -110,16 +111,13 @@ function MessageInput() {
       {/* ── Quick Emoji Bar ── */}
       {showEmojiPicker && (
         <div className="max-w-3xl mx-auto mb-3 animate-slide-in">
-          <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none
-                          p-1.5 rounded-2xl bg-slate-800/90 border border-slate-700/50 shadow-lg">
+          <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none p-1.5 rounded-2xl bg-slate-800/90 border border-slate-700/50 shadow-lg">
             {QUICK_EMOJIS.map((emoji) => (
               <button
                 key={emoji}
                 type="button"
                 onClick={() => addEmoji(emoji)}
-                className="flex-shrink-0 h-9 w-9 rounded-xl
-                           hover:bg-slate-700/80 flex items-center justify-center
-                           text-lg active:scale-90 transition-transform duration-100"
+                className="flex-shrink-0 h-9 w-9 rounded-xl hover:bg-slate-700/80 flex items-center justify-center text-lg active:scale-90 transition-transform duration-100"
               >
                 {emoji}
               </button>
@@ -135,14 +133,11 @@ function MessageInput() {
             <img
               src={imagePreview}
               alt="Attachment preview"
-              className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl
-                         border-2 border-cyan-500/40 shadow-lg"
+              className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border-2 border-cyan-500/40 shadow-lg"
             />
             <button
               onClick={removeImage}
-              className="absolute -top-2 -right-2 w-6 h-6 rounded-full
-                         bg-rose-600 hover:bg-rose-500 flex items-center justify-center
-                         text-white shadow-md transition-transform duration-150 active:scale-90"
+              className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-500 flex items-center justify-center text-white shadow-md transition-transform duration-150 active:scale-90"
               type="button"
               aria-label="Remove image"
             >
@@ -177,12 +172,7 @@ function MessageInput() {
             value={text}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            className="w-full bg-slate-800/80 border border-slate-700/50 rounded-2xl
-                       py-2.5 px-4
-                       text-sm sm:text-[14.5px] text-slate-100 placeholder:text-slate-500
-                       focus:outline-none focus:border-cyan-500/60
-                       focus:ring-2 focus:ring-cyan-500/15
-                       transition-all duration-200 shadow-inner"
+            className="w-full bg-slate-800/80 border border-slate-700/50 rounded-2xl py-2.5 px-4 text-sm sm:text-[14.5px] text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/15 transition-all duration-200 shadow-inner"
             placeholder="Type a message…"
             autoComplete="off"
           />
@@ -214,15 +204,7 @@ function MessageInput() {
         <button
           type="submit"
           disabled={!canSend}
-          className={`
-            icon-btn h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-2xl
-            bg-gradient-to-br from-cyan-500 to-blue-600 text-white
-            shadow-md shadow-cyan-500/25
-            hover:from-cyan-400 hover:to-blue-500 hover:shadow-lg hover:shadow-cyan-500/35
-            active:scale-95 transition-all duration-200
-            disabled:opacity-35 disabled:cursor-not-allowed
-            disabled:hover:from-cyan-500 disabled:hover:to-blue-600 disabled:hover:shadow-md
-          `}
+          className={` icon-btn h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 hover:shadow-lg hover:shadow-cyan-500/35 active:scale-95 transition-all duration-200 disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:from-cyan-500 disabled:hover:to-blue-600 disabled:hover:shadow-md`}
           aria-label="Send message"
         >
           <Send className="w-4 h-4 sm:w-[18px] sm:h-[18px] ml-0.5" />
