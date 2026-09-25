@@ -15,18 +15,12 @@ function ActiveTabSwitch() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={activeTab === "chats" ? "Search conversations..." : "Search contacts..."}
-          className="w-full rounded-xl bg-[#141e34] border border-slate-700/60
-                     pl-9 pr-8 py-2.5
-                     text-xs sm:text-sm text-slate-100 placeholder:text-slate-500
-                     focus:outline-none focus:border-cyan-500 focus:bg-[#18233c]
-                     focus:ring-2 focus:ring-cyan-500/20
-                     transition-all duration-200"
+          className="w-full rounded-xl bg-[#141e34] border border-slate-700/60 pl-9 pr-8 py-2.5 text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 focus:bg-[#18233c] focus:ring-2 focus:ring-cyan-500/20 transition-all duration-200"
         />
         {searchQuery && (
           <button
             onClick={() => setSearchQuery("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400
-                       hover:text-white p-0.5 rounded-md transition-colors duration-150"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 rounded-md transition-colors duration-150"
             aria-label="Clear search"
           >
             <X className="h-3.5 w-3.5" />
@@ -40,9 +34,7 @@ function ActiveTabSwitch() {
         <button
           role="tab"
           onClick={() => setActiveTab("chats")}
-          className={`
-            flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 px-2
-            text-xs sm:text-sm font-medium transition-all duration-200
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 px-2 text-xs sm:text-sm font-medium transition-all duration-200
             ${activeTab === "chats"
               ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md shadow-cyan-500/20"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/40"
@@ -54,9 +46,7 @@ function ActiveTabSwitch() {
           <MessageSquare className="h-3.5 w-3.5 shrink-0" />
           <span>Chats</span>
           {chats.length > 0 && (
-            <span className={`
-              rounded-full px-1.5 py-px text-[10px] font-semibold leading-none
-              transition-all duration-200
+            <span className={`rounded-full px-1.5 py-px text-[10px] font-semibold leading-none transition-all duration-200
               ${activeTab === "chats"
                 ? "bg-white/20 text-white"
                 : "bg-slate-700 text-slate-300"
@@ -71,9 +61,7 @@ function ActiveTabSwitch() {
         <button
           role="tab"
           onClick={() => setActiveTab("contacts")}
-          className={`
-            flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 px-2
-            text-xs sm:text-sm font-medium transition-all duration-200
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 px-2 text-xs sm:text-sm font-medium transition-all duration-200
             ${activeTab === "contacts"
               ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md shadow-cyan-500/20"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/40"
@@ -85,9 +73,7 @@ function ActiveTabSwitch() {
           <Users className="h-3.5 w-3.5 shrink-0" />
           <span>Contacts</span>
           {allContacts.length > 0 && (
-            <span className={`
-              rounded-full px-1.5 py-px text-[10px] font-semibold leading-none
-              transition-all duration-200
+            <span className={`rounded-full px-1.5 py-px text-[10px] font-semibold leading-none transition-all duration-200
               ${activeTab === "contacts"
                 ? "bg-white/20 text-white"
                 : "bg-slate-700 text-slate-300"

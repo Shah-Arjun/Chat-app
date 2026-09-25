@@ -53,8 +53,7 @@ function CallControls({ callStartTime, isConnected }) {
     <div className="relative flex flex-col items-center">
       {/* Device selector popover */}
       {showSettings && (
-        <div
-          className="absolute bottom-full mb-3 w-72 rounded-xl border border-slate-700 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md z-30 animate-fade-in text-left"
+        <div className="absolute bottom-full mb-3 w-72 rounded-xl border border-slate-700 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md z-30 animate-fade-in text-left"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
