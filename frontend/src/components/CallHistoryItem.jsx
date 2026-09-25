@@ -84,9 +84,7 @@ function CallHistoryItem({ call }) {
   return (
     <div className={`flex my-2 animate-slide-up ${isOutgoing ? "justify-end" : "justify-start"}`}>
       <div
-        className={`
-          flex items-center gap-3 px-3.5 py-2.5 rounded-2xl border
-          max-w-[85%] sm:max-w-[75%] md:max-w-[65%] shadow-sm
+        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl border max-w-[85%] sm:max-w-[75%] md:max-w-[65%] shadow-sm
           ${isOutgoing
             ? "bg-[#132238] border-slate-700/60 rounded-br-sm"
             : "bg-[#141c2e] border-slate-800 rounded-bl-sm"
@@ -94,9 +92,7 @@ function CallHistoryItem({ call }) {
         `}
       >
         {/* Call Icon Badge */}
-        <div
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}
-        >
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}>
           <IconComponent className="h-4 w-4" />
         </div>
 
@@ -127,10 +123,7 @@ function CallHistoryItem({ call }) {
                 : "User is offline"
             }
             aria-label={`Call back ${isAudio ? "Audio" : "Video"}`}
-            className="ml-auto shrink-0 flex items-center justify-center h-8 w-8 rounded-lg
-                       bg-slate-800/90 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300
-                       border border-slate-700/50 hover:border-cyan-500/40
-                       transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="ml-auto shrink-0 flex items-center justify-center h-8 w-8 rounded-lg bg-slate-800/90 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-700/50 hover:border-cyan-500/40 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {isAudio ? <Phone className="h-3.5 w-3.5" /> : <Video className="h-3.5 w-3.5" />}
           </button>
